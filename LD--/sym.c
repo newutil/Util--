@@ -4,6 +4,7 @@
 #include "util.h"
 #include "sym.h"
 
+
 // #define boolean int                        // boolean 型のつもり
 // #define true     1
 // #define false    0
@@ -22,16 +23,19 @@ extern int bssSize;
 extern int symSize;
 
 
-int strLen(int n) {                         // 文字列表中の文字列(n)の長さ
-  int i = n;
-  while(strTbl[i]!='\0')
-    i = i + 1;
-  return i - n + 1;                         // '\0' も数えた値を返す
-}
+// int strLen(int n) {                         // 文字列表中の文字列(n)の長さ
+//   int i = n;
+//   while(strTbl[i]!='\0')
+//     i = i + 1;
+//   return i - n + 1;                         // '\0' も数えた値を返す
+// }
 
 /* 名前表 */
-// #define SYM_SIZ  3000                       // 名前表の大きさ (<=16kエントリ)
+#define SYM_SIZ  3000                       // 名前表の大きさ (<=16kエントリ)
 
+int getSymSiz(){                            //名前表の大きさを返す
+  return SYM_SIZ;
+}
 struct SymTbl {                             // 名前表の型定義
   int strx;                                 // 文字列表の idx (14bitが有効)
   int type;                                 // type の意味は下に #define
@@ -47,15 +51,6 @@ struct SymTbl {                             // 名前表の型定義
 struct SymTbl symTbl[SYM_SIZ];              // 名前表本体の定義
 int symIdx = 0;                             // 表のどこまで使用したか
 
-boolean cmpStr(int n, int m) {              // 文字列表[n]〜と[m]〜 を比較する
-  for (int i=0; ; i=i+1) {
-    char t = strTbl[n+i];
-    char s = strTbl[m+i];
-    if (t!=s) return false;                 //   異なる
-    if (t=='\0') break;                     //   同じ
-  }
-  return true;
-}
 
 void readSymTbl(int offs, int sSize) {      // 名前表の読み込み
   xSeek(offs);                              // 名前表の位置に移動

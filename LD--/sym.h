@@ -7,7 +7,7 @@
 #define boolean int                         //本来utilをインクルードしているはずなので、日の目を見ることはないはず
 #endif
 
-boolean cmpStr(int n, int m);               //文字列表[n]〜と[m]を比較〜
+int getSymSiz();                            //名前表の大きさを返す
 void readSymTbl(int offs, int sSize);       //名前表の読み込み
 void mergeStrTbl(int symIdxB,int strIdxB);  //文字列表の重複を見つけ、統合する
 void mergeSymTbl();                         //名前を統合

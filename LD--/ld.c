@@ -137,10 +137,10 @@ void readHdr() {                            // ヘッダ読込みルーチン
 }
 
 /* 文字列表 */
-#define STR_SIZ  16000                      // 文字列表の大きさ(<=16kB)
+//extern STR_SIZ;                                // 文字列表の大きさ
 
-char strTbl[STR_SIZ];                       // 文字列表
-int  strIdx = 0;                            // 表のどこまで使用したか
+// char strTbl[STR_SIZ];                       // 文字列表
+// int  strIdx = 0;                            // 表のどこまで使用したか
 
 // int strLen(int n) {                         // 文字列表中の文字列(n)の長さ
 //   int i = n;
@@ -149,39 +149,39 @@ int  strIdx = 0;                            // 表のどこまで使用したか
 //   return i - n + 1;                         // '\0' も数えた値を返す
 // }
 
-boolean cmpStr(int n, int m) {              // 文字列表[n]〜と[m]〜 を比較する
-  for (int i=0; ; i=i+1) {
-    char t = strTbl[n+i];
-    char s = strTbl[m+i];
-    if (t!=s) return false;                 //   異なる
-    if (t=='\0') break;                     //   同じ
-  }
-  return true;
-}
+// boolean cmpStr(int n, int m) {              // 文字列表[n]〜と[m]〜 を比較する
+//   for (int i=0; ; i=i+1) {
+//     char t = strTbl[n+i];
+//     char s = strTbl[m+i];
+//     if (t!=s) return false;                 //   異なる
+//     if (t=='\0') break;                     //   同じ
+//   }
+//   return true;
+// }
 
-void putStr(FILE* fp,int n) {               // 文字列表の文字列[n]を表示する
-  if (n>0x3fff || n>=strIdx) error("putStr:バグ");
-  while (strTbl[n]!='\0') {
-    putc(strTbl[n],fp);
-    n = n + 1;
-  }
-}
+// void putStr(FILE* fp,int n) {               // 文字列表の文字列[n]を表示する
+//   if (n>0x3fff || n>=strIdx) error("putStr:バグ");
+//   while (strTbl[n]!='\0') {
+//     putc(strTbl[n],fp);
+//     n = n + 1;
+//   }
+// }
 
-void readStrTbl(int offs) {                 // 文字列表の読み込み
-  xSeek(offs);                              // 文字列表の位置に移動
-  int c;
-  while ((c=getB())!=EOF) {                 // EOFになるまで読み込む
-    if (strIdx>=STR_SIZ) tblError("文字列表がパンクした");
-    strTbl[strIdx] = c;
-    strIdx = strIdx + 1;
-  }
-}
+// void readStrTbl(int offs) {                 // 文字列表の読み込み
+//   xSeek(offs);                              // 文字列表の位置に移動
+//   int c;
+//   while ((c=getB())!=EOF) {                 // EOFになるまで読み込む
+//     if (strIdx>=STR_SIZ) tblError("文字列表がパンクした");
+//     strTbl[strIdx] = c;
+//     strIdx = strIdx + 1;
+//   }
+// }
 
-void writeStrTbl() {                        // 文字列表をファイルへ出力
-  for (int i=0; i<strIdx; i=i+1) {          // 全ての文字について
-    putB(strTbl[i]);                        //   出力する
-  }
-}
+// void writeStrTbl() {                        // 文字列表をファイルへ出力
+//   for (int i=0; i<strIdx; i=i+1) {          // 全ての文字について
+//     putB(strTbl[i]);                        //   出力する
+//   }
+// }
 
 // /* 名前表 */
 // #define SYM_SIZ  3000                       // 名前表の大きさ (<=16kエントリ)
@@ -325,86 +325,86 @@ void writeStrTbl() {                        // 文字列表をファイルへ出
 // }
 
 /* 再配置表 */
-#define REL_SIZ  6000                       // 再配置表の大きさ
+// #define REL_SIZ  6000                       // 再配置表の大きさ
 
-struct Reloc {                              // 再配置表
-  int addr;                                 // ポインタのセグメント内 Offs
-  int symx;                                 // シンボルテーブル上の番号
-};
+// struct Reloc {                              // 再配置表
+//   int addr;                                 // ポインタのセグメント内 Offs
+//   int symx;                                 // シンボルテーブル上の番号
+// };
 
-struct Reloc relTbl[REL_SIZ];               // 再配置表の定義
-int relIdx;                                 // 表のどこまで使用したか
+// struct Reloc relTbl[REL_SIZ];               // 再配置表の定義
+// int relIdx;                                 // 表のどこまで使用したか
 
-void readRelTbl(int offs, int relSize, int symBase, int textBase){
-  xSeek(offs);
-  for (int i=0; i<relSize; i=i+4) {         // 再配置表の1エントリは4バイト
-    int addr = getW() + textBase;           // 再配置アドレス
-    int symx = getW() & 0x3fff;             // 名前表のエントリ番号
-    symx = symx + symBase / 4;              //   名前表の1エントリは4バイト
-    while (symTbl[symx].type==SYMPTR)       // PTRならポインターをたぐる
-      symx = symTbl[symx].val;              //   PTRを使用する再配置情報はない
-    if (relIdx>=REL_SIZ) tblError("再配置表がパンクした");
-    if ((addr&1)!=0) fError("再配置表に奇数アドレスがある");
-    relTbl[relIdx].addr = addr;
-    relTbl[relIdx].symx = symx;             // PTRではなく本体を指す
-    relIdx = relIdx + 1;
-  }
-}
+// void readRelTbl(int offs, int relSize, int symBase, int textBase){
+//   xSeek(offs);
+//   for (int i=0; i<relSize; i=i+4) {         // 再配置表の1エントリは4バイト
+//     int addr = getW() + textBase;           // 再配置アドレス
+//     int symx = getW() & 0x3fff;             // 名前表のエントリ番号
+//     symx = symx + symBase / 4;              //   名前表の1エントリは4バイト
+//     while (symTbl[symx].type==SYMPTR)       // PTRならポインターをたぐる
+//       symx = symTbl[symx].val;              //   PTRを使用する再配置情報はない
+//     if (relIdx>=REL_SIZ) tblError("再配置表がパンクした");
+//     if ((addr&1)!=0) fError("再配置表に奇数アドレスがある");
+//     relTbl[relIdx].addr = addr;
+//     relTbl[relIdx].symx = symx;             // PTRではなく本体を指す
+//     relIdx = relIdx + 1;
+//   }
+// }
 
-void packSymTbl()  {                        // 名前表の不要エントリーを削除
-  int i = 0;
-  while (i<symIdx) {                        // 全てのエントリーについて
-    if (symTbl[i].type==SYMPTR) {           // PTRなら以下のように削除する
-      for (int j=0; j<relIdx; j=j+1) {      //   再配置情報全てについて
-	if (relTbl[j].symx>=i)              //     名前表の削除位置より後ろを
-	  relTbl[j].symx=relTbl[j].symx-1;  //     参照しているインデクスを調整
-      }
-      for (int j=i; j<symIdx-1; j=j+1) {    //   名前表を前につめる
-	symTbl[j].strx = symTbl[j+1].strx;
-	symTbl[j].type = symTbl[j+1].type;
-	symTbl[j].val  = symTbl[j+1].val;
-      }
-      symIdx = symIdx - 1;                  //   名前表を縮小する
-    } else
-      i = i + 1;                            // PTR以外なら進める
-  }
-}
+// void packSymTbl()  {                        // 名前表の不要エントリーを削除
+//   int i = 0;
+//   while (i<symIdx) {                        // 全てのエントリーについて
+//     if (symTbl[i].type==SYMPTR) {           // PTRなら以下のように削除する
+//       for (int j=0; j<relIdx; j=j+1) {      //   再配置情報全てについて
+// 	if (relTbl[j].symx>=i)              //     名前表の削除位置より後ろを
+// 	  relTbl[j].symx=relTbl[j].symx-1;  //     参照しているインデクスを調整
+//       }
+//       for (int j=i; j<symIdx-1; j=j+1) {    //   名前表を前につめる
+// 	symTbl[j].strx = symTbl[j+1].strx;
+// 	symTbl[j].type = symTbl[j+1].type;
+// 	symTbl[j].val  = symTbl[j+1].val;
+//       }
+//       symIdx = symIdx - 1;                  //   名前表を縮小する
+//     } else
+//       i = i + 1;                            // PTR以外なら進める
+//   }
+// }
 
-void writeRelTbl() {                       // 再配置表をファイルへ出力
-  for (int i=0; i<relIdx; i=i+1) {
-    int addr = relTbl[i].addr;
-    int symx = relTbl[i].symx;
-    int type = symTbl[symx].type;
-    putW(addr);
-    putW((type<<14) | symx);
-  }
-}
+// void writeRelTbl() {                       // 再配置表をファイルへ出力
+//   for (int i=0; i<relIdx; i=i+1) {
+//     int addr = relTbl[i].addr;
+//     int symx = relTbl[i].symx;
+//     int type = symTbl[symx].type;
+//     putW(addr);
+//     putW((type<<14) | symx);
+//   }
+// }
 
-void printRelTbl() {                       // 再配置表をリスト出力
-  printf("*** 再配置表 ***\n");
-  printf("Addr\tName\tType\tNo.\n");
-  for (int i=0; i<relIdx; i=i+1) {
-    int addr = relTbl[i].addr;
-    int symx = relTbl[i].symx;
-    int type = symTbl[symx].type;
+// void printRelTbl() {                       // 再配置表をリスト出力
+//   printf("*** 再配置表 ***\n");
+//   printf("Addr\tName\tType\tNo.\n");
+//   for (int i=0; i<relIdx; i=i+1) {
+//     int addr = relTbl[i].addr;
+//     int symx = relTbl[i].symx;
+//     int type = symTbl[symx].type;
     
-    printf("%04x\t",addr);
-    putStr(stdout,symTbl[symx].strx);
-    printf("\t");
-    printSymType(type);
-    printf("\t%d\n", symx);
-  }
-  printf("\n");
-}
+//     printf("%04x\t",addr);
+//     putStr(stdout,symTbl[symx].strx);
+//     printf("\t");
+//     printSymType(type);
+//     printf("\t%d\n", symx);
+//   }
+//   printf("\n");
+// }
 
 /* 表の込み具合を確認する */
 int maxStrIdx = 0;                         // 文字列表の最大値
 int maxSymIdx = 0;                         // 名前表の最大値
 
 void tblReport(void) {
-  fprintf(stderr, "文字列表\t%5d/%5d\n", maxStrIdx, STR_SIZ);
-  fprintf(stderr, "  名前表\t%5d/%5d\n", maxSymIdx, SYM_SIZ);
-  fprintf(stderr, "再配置表\t%5d/%5d\n", relIdx, REL_SIZ);
+  fprintf(stderr, "文字列表\t%5d/%5d\n", maxStrIdx, getStrSiz()); //サイズはゲッターで入手
+  fprintf(stderr, "  名前表\t%5d/%5d\n", maxSymIdx, getSymSiz());
+  fprintf(stderr, "再配置表\t%5d/%5d\n", relIdx, getRelSiz());
 }
 
 /* 表がパンクしたときに使用する */
