@@ -7,12 +7,12 @@ void error(char *str) {                   // エラーメッセージを表示�
   exit(1);
 }
 
-void tblError(char *str);
+// void tblError(char *str);
 
 // ファイル関係
 FILE* out;                                 // 出力ファイル
 FILE* in;                                  // 入力ファイル
-char *curFile = "";                        // 現在の入力ファイル
+char *curFile = "";                        // 現在の入出力ファイル
 
 #define getB()    fgetc(in)
 #define putB(c)   fputc(c,out)
@@ -22,11 +22,19 @@ void fError(char *str) {                   // ファイル名付きでエラー�
   error(str);
 }
 
-void xOpen(char *fname) {                  // エラーチェック付きの fopen
+void xOpenIn(char *fname) {                  // エラーチェック付きの fopen
   curFile = fname;
   if ((in = fopen(fname, "rb"))==NULL) {   // 入力ファイルオープン
     fError("can't open");
   }
+}
+
+void xOpenOut(char *fname){                 // エラーチェック付きの fopen
+  curFile = fname;
+  if ((out = fopen(fname,"wb"))==NULL) {    // 出力ファイルオープン
+    fError("can't open");
+  }
+  
 }
   
 void xSeek(int offset) {                   // エラーチェック付きの SEEK ルーチン

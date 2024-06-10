@@ -3,24 +3,23 @@
 #include <string.h>
 #include "util.h"
 #include "sym.h"
+#include "str.h"
 
 
 // #define boolean int                        // boolean 型のつもり
 // #define true     1
 // #define false    0
-//#define true     1
-//#define false    0
 // #define WORD     2                         // 1ワード2バイト
 // #define MAGIC    0x0107                    // .o 形式のマジック番号
 // #define HDRSIZ   16                        // .o 形式のヘッダーサイズ
 
-extern int strIdx;                                //表のどこまで使用したか
-extern int textBase;                              // 現在の入力ファイルの
-extern int dataBase;                              //   各セグメントの
-extern int bssBase;                               //     ロードアドレス
+// extern int strIdx;                                //表のどこまで使用したか
+// extern int textBase;                              // 現在の入力ファイルの
+// extern int dataBase;                              //   各セグメントの
+// extern int bssBase;                               //     ロードアドレス
 
-extern int bssSize;
-extern int symSize;
+// extern int bssSize;
+// extern int symSize;
 
 
 // int strLen(int n) {                         // 文字列表中の文字列(n)の長さ
@@ -33,46 +32,94 @@ extern int symSize;
 /* 名前表 */
 #define SYM_SIZ  3000                       // 名前表の大きさ (<=16kエントリ)
 
-int getSymSiz(){                            //名前表の大きさを返す
-  return SYM_SIZ;
-}
 struct SymTbl {                             // 名前表の型定義
   int strx;                                 // 文字列表の idx (14bitが有効)
   int type;                                 // type の意味は下に #define
   int val;                                  // 名前の値
 };
 
-#define SYMUNDF 0                           // 未定義ラベル
-#define SYMTEXT 1                           // TEXTのラベル
-#define SYMDATA 2                           // DATAのラベル
-#define SYMBSS  3                           // BSSのラベル
-#define SYMPTR  4                           // 表の他要素へのポインタ
+// #define SYMUNDF 0                           // 未定義ラベル
+// #define SYMTEXT 1                           // TEXTのラベル
+// #define SYMDATA 2                           // DATAのラベル
+// #define SYMBSS  3                           // BSSのラベル
+// #define SYMPTR  4                           // 表の他要素へのポインタ
 
 struct SymTbl symTbl[SYM_SIZ];              // 名前表本体の定義
 int symIdx = 0;                             // 表のどこまで使用したか
+int symIdxB;
+int maxSymIdx=0;
+
+int getSymIdx(){                            //使用した表の領域のゲッター
+  return symIdx;
+}
+
+void setSymIdx(int num){                    //使用した表の領域のセッター
+if(num >= SYM_SIZ || num < 0){
+    error("名前表の値がおかしい");    //存在しない番地
+    return; //念の為
+  }
+  symIdx=num;
+}
+
+int getSymTbl(int index,char *str){                   //名前表のゲッター
+  if(index >= SYM_SIZ || index < 0){
+    error("名前表の参照先がおかしい");    //存在しない番地
+  }
+  if(strcmp(str,"strx")==0) return symTbl[index].strx;
+  else if(strcmp(str,"type")==0) return symTbl[index].type;
+  else if(strcmp(str,"val")==0) return symTbl[index].val;
+  else{
+    error("名前表の参照名がおかしい");
+  }
+  return -1;
+}
 
 
-void readSymTbl(int offs, int sSize) {      // 名前表の読み込み
+void setSymTbl(int index,int newStrx,int newType,int newVal){          //名前表のセッター
+  symTbl[index].strx = newStrx;
+  symTbl[index].type = newType;
+  symTbl[index].val  = newVal;
+}
+
+
+static void setMaxSymIdxIfNeeded(int i){                      //名前表のサイズ合わせ
+  if (i > maxSymIdx) maxSymIdx = i;
+}
+
+
+/* 表がパンクしたときに使用する */
+static void symTblError() {
+  fprintf(stderr, "  名前表がパンクした\t%5d/%5d\n", maxSymIdx, SYM_SIZ);
+  exit(1);
+}
+
+void readSymTbl(int offs, int sSize,int textBase,int dataBase) {      // 名前表の読み込み
+
+  symIdxB = symIdx;                         //後でマージする時のために保持する
   xSeek(offs);                              // 名前表の位置に移動
   for (int i=0; i<sSize; i=i+4) {           // ファイルの名前表について
     int strx = getW();
     int type = (strx >> 14) & 0x3;          // 名前の型を分離
-    strx = strIdx + (strx & 0x3fff);        // 名前のインデクスを分離
+    strx = getStrIdx() + (strx & 0x3fff);        // 名前のインデクスを分離
     int val  = getW();                      // 名前の値はセグメントの
     if (type==SYMTEXT)                      //   ロードアドレスにより変化する
       val = val + textBase;                 //     TEXTセグメントの場合
     else if (type==SYMDATA)                 //     DATAセグメントの場合
       val = val + dataBase;                 //     BSSセグメントの場合はサイズ
-    if (symIdx>=SYM_SIZ) tblError("名前表がパンクした");
+    if (symIdx>=SYM_SIZ) symTblError();
     symTbl[symIdx].strx = strx;             // 名前の綴
     symTbl[symIdx].type = type;             // 名前の型
     symTbl[symIdx].val  = val;              // 名前の値
     symIdx = symIdx + 1;
   }
+
+  setMaxSymIdxIfNeeded(symIdx);             //名前表の大きさを更新する
 }
 
-void mergeStrTbl(int symIdxB,int strIdxB) { // 文字列表に新しく追加した綴りに
+void mergeStrTbl() { // 文字列表に新しく追加した綴りに
                                             //   重複があれば統合する
+  int strIdxB = getStrIdx();
+
   for (int i=symIdxB; i<symIdx; i=i+1) {   // 追加された文字列について
     int idxI = symTbl[i].strx;
     if (idxI < strIdxB) continue;           //  既に統合済みなら処理しない
@@ -87,19 +134,22 @@ void mergeStrTbl(int symIdxB,int strIdxB) { // 文字列表に新しく追加し
 	  else if (idxK > idxI)             //   前につめる部分にある文字列は
 	    symTbl[k].strx = idxK - len;    //     位置調整
 	}
-	for (int k=idxI; k<strIdx-len; k=k+1)//  文字列表から統合した綴り削除
-	  strTbl[k] = strTbl[k+len];        //     文字列を前につめる
-	strIdx = strIdx - len;              //   文字列表を縮小
+  packStrTbl(idxI,len);               //  文字列表から統合した綴り削除
+
+	// for (int k=idxI; k<strIdx-len; k=k+1)//  文字列表から統合した綴り削除
+	//   strTbl[k] = strTbl[k+len];        //     文字列を前につめる
+	// strIdx = strIdx - len;              //   文字列表を縮小      //str.cのpackStrTblに移動
+
 	break;
       }
     }
   }
 }
 
-void mergeSymTbl() {                        // 名前の結合を行う
+void mergeSymTbl(int bssSize, int symSize) {                        // 名前の結合を行う
   for (int i=0; i<symIdx; i=i+1) {          // 全ての名前について
     int typeI = symTbl[i].type;
-    if (strTbl[symTbl[i].strx]=='.')        // ローカルは無視する
+    if (getStrTbl(symTbl[i].strx)=='.')        // ローカルは無視する
       continue;
     for (int j=0; j<i; j=j+1) {
       int typeJ = symTbl[j].type;           // PTR以外で同じ綴りを探す

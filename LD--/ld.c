@@ -43,11 +43,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "util.h"
+#include "rel.h"
+#include "sym.h"
+#include "str.h"
 
 
-#define boolean int                        // boolean 型のつもり
-#define true     1
-#define false    0
+// #define boolean int                        // boolean 型のつもり
+// #define true     1
+// #define false    0
 #define WORD     2                         // 1ワード2バイト
 #define MAGIC    0x0107                    // .o 形式のマジック番号
 #define HDRSIZ   16                        // .o 形式のヘッダーサイズ
@@ -398,21 +401,21 @@ void readHdr() {                            // ヘッダ読込みルーチン
 // }
 
 /* 表の込み具合を確認する */
-int maxStrIdx = 0;                         // 文字列表の最大値
-int maxSymIdx = 0;                         // 名前表の最大値
+//int maxStrIdx = 0;                         // 文字列表の最大値
+//int maxSymIdx = 0;                         // 名前表の最大値
 
-void tblReport(void) {
-  fprintf(stderr, "文字列表\t%5d/%5d\n", maxStrIdx, getStrSiz()); //サイズはゲッターで入手
-  fprintf(stderr, "  名前表\t%5d/%5d\n", maxSymIdx, getSymSiz());
-  fprintf(stderr, "再配置表\t%5d/%5d\n", relIdx, getRelSiz());
-}
+// void tblReport(void) {
+//   fprintf(stderr, "文字列表\t%5d/%5d\n", maxStrIdx, STR_SIZ);
+//   fprintf(stderr, "  名前表\t%5d/%5d\n", maxSymIdx, SYM_SIZ);
+//   fprintf(stderr, "再配置表\t%5d/%5d\n", relIdx, REL_SIZ);
+// }
 
-/* 表がパンクしたときに使用する */
-void tblError(char *str) {
-  fprintf(stderr, "%s\n", str);
-  tblReport();
-  exit(1);
-}
+// /* 表がパンクしたときに使用する */
+// void tblError(char *str) {
+//   fprintf(stderr, "%s\n", str);
+//   tblReport();
+//   exit(1);
+// }
 
 /* プログラムやデータをリロケートしながらコピーする */
 void copyCode(int offs, int segSize, int segBase, int relBase) {
@@ -420,11 +423,11 @@ void copyCode(int offs, int segSize, int segBase, int relBase) {
   int rel = relBase;
   for (int i=segBase; i<segBase+segSize; i=i+WORD) {
     int w = getW();
-    if (rel<relIdx && relTbl[rel].addr==i) {  // ポインタのアドレスに達した
-      int symx = relTbl[rel].symx;            // 名前表のインデクスに変換
-      int type = symTbl[symx].type;
+    if (rel</*relIdx*/getRelIdx() && /*relTbl[rel].addr*/getRelTbl(rel,"addr")==i) {  // ポインタのアドレスに達した
+      int symx = getRelTbl(rel,"symx");/*relTbl[rel].symx;*/            // 名前表のインデクスに変換
+      int type = getSymTbl(symx,"type");/*symTbl[symx].type;*/
       if (type!=SYMUNDF && type!=SYMBSS) {    // UNDF と BSS は 0 のまま
-	w = symTbl[symx].val;
+	w = getSymTbl(symx,"val");/*symTbl[symx].val;*/
 	if (type==SYMDATA) w=w+textSize;      // データセグメントなら(一応)
       }                                       // 絶対番地を書き込んでおく
       rel = rel + 1;                          // 次のポインタに進む
@@ -434,7 +437,7 @@ void copyCode(int offs, int segSize, int segBase, int relBase) {
 }
 
 // 使い方表示関数
-void usage(char *name) {
+static void usage(char *name) {
   fprintf(stderr,"使用方法 : %s [-h] [-v] <outfile> <objfile>...\n", name);
   fprintf(stderr, "    <objfile> (複数)から入力し\n");
   fprintf(stderr, "    <outfile> へ出力\n");
@@ -460,27 +463,28 @@ int main(int argc, char **argv) {
     exit(0);
   }
 
-  if ((out = fopen(argv[1],"wb"))==NULL) {    // 出力ファイルオープン
-    perror(argv[1]);
-    exit(1);
-  }
+  xOpenOut(argv[1]);    //出力ファイルオープン
+  // if ((out = fopen(argv[1],"wb"))==NULL) {    // 出力ファイルオープン
+  //   perror(argv[1]);
+  //   exit(1);
+  // }
 
   /* 入力ファイルのシンボルテーブルを読み込んで統合する */
   textBase = dataBase = bssBase = 0;
   trSize = drSize = symSize = 0;
   for (int i=2; i<argc; i=i+1) {
-    xOpen(argv[i]);
-    int newSymBase = symIdx;
-    int newStrBase = strIdx;
+    xOpenIn(argv[i]);
+    // int newSymBase = symIdx;
+    //int newStrBase = strIdx;
     readHdr();
     //printf("%s:text=%04x,data=%04x,bss=%04x,Tr=%04x,Dr=%04x,Sym=%04x\n",
     //	   argv[i],cTextSize,cDataSize,cBssSize,cTrSize,cDrSize,cSymSize);
-    readSymTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize,cSymSize);
+    readSymTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize,cSymSize,textBase,dataBase);  //textBase,dataBaseも渡すようにした
     readStrTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize+cSymSize);
-    if (symIdx > maxSymIdx) maxSymIdx = symIdx;
-    if (strIdx > maxStrIdx) maxStrIdx = strIdx;
+    //if (symIdx > maxSymIdx) maxSymIdx = symIdx;
+    //if (strIdx > maxStrIdx) maxStrIdx = strIdx;
 
-    mergeStrTbl(newSymBase, newStrBase);
+    mergeStrTbl(/*newSymBase, newStrBase*/);
 
     textBase = textBase + cTextSize;
     dataBase = dataBase + cDataSize;
@@ -496,17 +500,19 @@ int main(int argc, char **argv) {
   dataSize = dataBase;
   bssSize  = bssBase;
 
-  mergeSymTbl();                                // シンボルテーブルの統合をする
+  mergeSymTbl(bssSize, symSize);                // シンボルテーブルの統合をする
                                                 // bssSize, symSize も再計算する
   writeHdr();                                   // ヘッダを出力する
 
   /* テキストセグメントを入力して結合後出力する */
   int symBase = 0;
-  textBase = relIdx = 0;
+  //textBase = relIdx = 0;
+  textBase=0;
+  setRelIdx(0);
   for (int i=2; i<argc; i=i+1) {
-    xOpen(argv[i]);
+    xOpenIn(argv[i]);   //入力ファイルとしてオープン
     readHdr();
-    int relBase = relIdx;
+    int relBase = getRelIdx();  /*relIdx;*/
     readRelTbl(HDRSIZ+cTextSize+cDataSize,cTrSize,symBase,textBase);
     copyCode(HDRSIZ,cTextSize,textBase,relBase);  // テキストをコピー
 
@@ -518,9 +524,9 @@ int main(int argc, char **argv) {
   /* データセグメントを入力して結合後出力する */
   dataBase = symBase = 0;
   for (int i=2; i<argc; i=i+1) {
-    xOpen(argv[i]);
+    xOpenIn(argv[i]);
     readHdr();
-    int relBase = relIdx;
+    int relBase = getRelIdx();/*relIdx;*/
     readRelTbl(HDRSIZ+cTextSize+cDataSize+cTrSize,cDrSize,symBase,dataBase);
     copyCode(HDRSIZ+cTextSize,cDataSize,dataBase,relBase);   // データをコピー
 

@@ -1,14 +1,31 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "util.h"
 #include "str.h"
 
 #define STR_SIZ  16000                      // 文字列表の大きさ(<=16kB)
 
-int getStrSiz(){                            //文字列表の大きさを返す
-  return STR_SIZ;
-}
+// #define boolean int                        // boolean 型のつもり
+// #define true     1
+// #define false    0
 
 char strTbl[STR_SIZ];                       // 文字列表
 int  strIdx = 0;                            // 表のどこまで使用したか
+int  maxStrIdx = 0;
+
+
+static void setMaxStrIdxIfNeeded(int i){    // 文字列表のサイズ合わせ
+  if (i > maxStrIdx) maxStrIdx = i;
+}
+
+int getStrIdx(){
+  return strIdx;
+}
+
+
+char getStrTbl(int i){                      //文字列表の値を返す
+  return strTbl[i];
+}
 
 int strLen(int n) {                         // 文字列表中の文字列(n)の長さ
   int i = n;
@@ -18,14 +35,21 @@ int strLen(int n) {                         // 文字列表中の文字列(n)の
 }
 
 
+/* 表がパンクしたときに使用する */
+static void strTblError() {
+  fprintf(stderr, "  文字列表がパンクした\t%5d/%5d\n", maxStrIdx, STR_SIZ);
+  exit(1);
+}
+
 void readStrTbl(int offs) {                 // 文字列表の読み込み
   xSeek(offs);                              // 文字列表の位置に移動
   int c;
   while ((c=getB())!=EOF) {                 // EOFになるまで読み込む
-    if (strIdx>=STR_SIZ) tblError("文字列表がパンクした");
+    if (strIdx>=STR_SIZ) strTblError();
     strTbl[strIdx] = c;
     strIdx = strIdx + 1;
   }
+  setMaxStrIdxIfNeeded(strIdx);         //文字列表の大きさを更新する
 }
 
 void writeStrTbl() {                        // 文字列表をファイルへ出力
@@ -53,5 +77,9 @@ void putStr(FILE* fp,int n) {               // 文字列表の文字列[n]を表
   }
 }
 
-void delStrTbl(int symIdxB,)
+void packStrTbl(int idxI,int len){   //  文字列表から統合した綴りを削除する
+  for (int k=idxI; k<strIdx-len; k=k+1)
+	  strTbl[k] = strTbl[k+len];        //     文字列を前につめる
+	strIdx = strIdx - len;              //   文字列表を縮小
+}
 
