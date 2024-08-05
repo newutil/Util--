@@ -1,0 +1,10 @@
+//#include <stdlib.hmm>
+//#include <stdio.h>
+
+public int a=2;
+int b;
+int c;
+
+int ff(){
+    return 0;
+}

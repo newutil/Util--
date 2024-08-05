@@ -451,6 +451,10 @@ static void usage(char *name) {
 
 // main 関数
 int main(int argc, char **argv) {
+
+    printf("\n↓Debug message↓\n "); //デバッグ用 
+
+
   if (argc>1 &&
       (strcmp(argv[1],"-v")==0 ||              //  "-v", "-h" で、使い方と
        strcmp(argv[1],"-h")==0   ) ) {         //   バージョンを表示
@@ -463,16 +467,22 @@ int main(int argc, char **argv) {
     exit(0);
   }
 
+
+  printf("Opening file %s ...\n",argv[1]);//デバッグ用 
   xOpenOut(argv[1]);    //出力ファイルオープン
   // if ((out = fopen(argv[1],"wb"))==NULL) {    // 出力ファイルオープン
   //   perror(argv[1]);
   //   exit(1);
   // }
 
+  printf("Out file %s open done.\n",argv[1]);//デバッグ用 
+
   /* 入力ファイルのシンボルテーブルを読み込んで統合する */
   textBase = dataBase = bssBase = 0;
   trSize = drSize = symSize = 0;
   for (int i=2; i<argc; i=i+1) {
+
+    printf("Opening and loading file %s ...\n",argv[i]);
     xOpenIn(argv[i]);
     // int newSymBase = symIdx;
     //int newStrBase = strIdx;
@@ -493,15 +503,35 @@ int main(int argc, char **argv) {
     trSize   = trSize   + cTrSize;
     drSize   = drSize   + cDrSize;
     symSize  = symSize  + cSymSize;
+    
+  printf("Open and load file %s done.\n",argv[i]);  //デバッグ用 
 
     fclose(in);
   }
+
+  printf("Open and load files all done.\n");  //デバッグ用
+
+
+  //この辺りでプログラムが停止するので調べてみる
+  printf("textSize = testBase...");//デバッグ用
   textSize = textBase;
+  printf("\tOK\n");
+
+  printf("dataSize = dataBase...");//デバッグ用
   dataSize = dataBase;
+  printf("\tOK\n");
+
+  printf("bssSize = bssBase...");//デバッグ用
   bssSize  = bssBase;
+  printf("\tOK\n");
+
+
+  printf("Merging Symbol table...");//デバッグ用
 
   mergeSymTbl(bssSize, symSize);                // シンボルテーブルの統合をする
                                                 // bssSize, symSize も再計算する
+
+  printf("Meage Symbol table all done.");
   writeHdr();                                   // ヘッダを出力する
 
   /* テキストセグメントを入力して結合後出力する */
@@ -536,6 +566,8 @@ int main(int argc, char **argv) {
   }
 
   packSymTbl();                            // 名前表から結合した残骸を削除
+
+
 
   writeRelTbl();                           // 再配置表を出力する
   printRelTbl();                           // 再配置表をリスト出力する

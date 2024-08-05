@@ -1,0 +1,9 @@
+//#include <stdlib.hmm>
+//#include <stdio.h>
+
+public int a;
+int b=10;
+int c=9;
+public int main(){
+    return 0;
+}
