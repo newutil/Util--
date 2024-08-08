@@ -1,10 +1,7 @@
-//#include <stdlib.hmm>
-//#include <stdio.h>
+int a =10;
+public b;
+public c = 20;
 
-public int a=2;
-int b;
-int c;
-
-int ff(){
-    return 0;
+int f(){
+    a=20;
 }

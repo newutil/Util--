@@ -1,9 +1,7 @@
-//#include <stdlib.hmm>
-//#include <stdio.h>
+int a;
+public b = 10;
+int c;
 
-public int a;
-int b=10;
-int c=9;
-public int main(){
-    return 0;
+public void main(){
+    c=a+b;
 }

@@ -8,9 +8,9 @@ all: ../ld-- a.cmm b.cmm c.cmm
 	c-- a.cmm > a.s
 	c-- b.cmm > b.s
 	c-- c.cmm > c.s
-	as-- a.s
-	as-- b.s
-	as-- c.s
+	../../AS--/as-- a.s
+	../../AS--/as-- b.s
+	../../AS--/as-- c.s
 	../ld-- x.o a.o b.o
 	../ld-- a.out x.o c.o
 

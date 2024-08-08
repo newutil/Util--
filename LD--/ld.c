@@ -72,6 +72,8 @@ int symSize;                               // 出力ファイルのSYMSサイズ
 int trSize;                                // 出力ファイルのTr  サイズ
 int drSize;                                // 出力ファイルのDr  サイズ
 
+
+
 // void error(char *str) {                   // エラーメッセージを表示して終了
 //   fprintf(stderr, "%s\n", str);
 //   exit(1);
@@ -80,9 +82,9 @@ int drSize;                                // 出力ファイルのDr  サイズ
 // void tblError(char *str);
 
 // // ファイル関係
-// FILE* out;                                 // 出力ファイル
-// FILE* in;                                  // 入力ファイル
-// char *curFile = "";                        // 現在の入力ファイル
+FILE* out;                                 // 出力ファイル
+FILE* in;                                  // 入力ファイル
+//char *curFile = "";                        // 現在の入力ファイル
 
 // #define getB()    fgetc(in)
 // #define putB(c)   fputc(c,out)
@@ -117,26 +119,26 @@ int drSize;                                // 出力ファイルのDr  サイズ
 // }
 
 void writeHdr() {                           // ヘッダ書き出しルーチン
-  putW(MAGIC);                             //   マジックナンバー
-  putW(textSize);                           //   TEXTサイズ
-  putW(dataSize);                           //   DATAサイズ
-  putW(bssSize);                            //   BSS サイズ
-  putW(symSize);                            //   SYMSサイズ
-  putW(0);                                  //   ENTRY
-  putW(trSize);                             //   Trサイズ
-  putW(drSize);                             //   Drサイズ
+  putW(MAGIC,out);                             //   マジックナンバー
+  putW(textSize,out);                           //   TEXTサイズ
+  putW(dataSize,out);                           //   DATAサイズ
+  putW(bssSize,out);                            //   BSS サイズ
+  putW(symSize,out);                            //   SYMSサイズ
+  putW(0,out);                                  //   ENTRY
+  putW(trSize,out);                             //   Trサイズ
+  putW(drSize,out);                             //   Drサイズ
 }
 
 void readHdr() {                            // ヘッダ読込みルーチン
-  if (getW()!=MAGIC)                        //   マジックナンバー
+  if (getW(in)!=MAGIC)                        //   マジックナンバー
     fError("扱えないファイル");
-  cTextSize=getW();                         //   TEXTサイズ
-  cDataSize=getW();                         //   DATAサイズ
-  cBssSize=getW();                          //   BSS サイズ
-  cSymSize=getW();                          //   SYMSサイズ
-  getW();                                   //   ENTRY
-  cTrSize=getW();                           //   Trサイズ
-  cDrSize=getW();                           //   Drサイズ
+  cTextSize=getW(in);                         //   TEXTサイズ
+  cDataSize=getW(in);                         //   DATAサイズ
+  cBssSize=getW(in);                          //   BSS サイズ
+  cSymSize=getW(in);                          //   SYMSサイズ
+  getW(in);                                   //   ENTRY
+  cTrSize=getW(in);                           //   Trサイズ
+  cDrSize=getW(in);                           //   Drサイズ
 }
 
 /* 文字列表 */
@@ -422,7 +424,7 @@ void copyCode(int offs, int segSize, int segBase, int relBase) {
   xSeek(offs);
   int rel = relBase;
   for (int i=segBase; i<segBase+segSize; i=i+WORD) {
-    int w = getW();
+    int w = getW(in);
     if (rel</*relIdx*/getRelIdx() && /*relTbl[rel].addr*/getRelTbl(rel,"addr")==i) {  // ポインタのアドレスに達した
       int symx = getRelTbl(rel,"symx");/*relTbl[rel].symx;*/            // 名前表のインデクスに変換
       int type = getSymTbl(symx,"type");/*symTbl[symx].type;*/
@@ -432,7 +434,7 @@ void copyCode(int offs, int segSize, int segBase, int relBase) {
       }                                       // 絶対番地を書き込んでおく
       rel = rel + 1;                          // 次のポインタに進む
     }
-    putW(w);
+    putW(w,out);
   }
 }
 
@@ -451,10 +453,6 @@ static void usage(char *name) {
 
 // main 関数
 int main(int argc, char **argv) {
-
-    printf("\n↓Debug message↓\n "); //デバッグ用 
-
-
   if (argc>1 &&
       (strcmp(argv[1],"-v")==0 ||              //  "-v", "-h" で、使い方と
        strcmp(argv[1],"-h")==0   ) ) {         //   バージョンを表示
@@ -467,34 +465,28 @@ int main(int argc, char **argv) {
     exit(0);
   }
 
-
-  printf("Opening file %s ...\n",argv[1]);//デバッグ用 
-  xOpenOut(argv[1]);    //出力ファイルオープン
+  xOpen(out,argv[1],"wb");    //出力ファイルオープン
   // if ((out = fopen(argv[1],"wb"))==NULL) {    // 出力ファイルオープン
   //   perror(argv[1]);
   //   exit(1);
   // }
 
-  printf("Out file %s open done.\n",argv[1]);//デバッグ用 
-
   /* 入力ファイルのシンボルテーブルを読み込んで統合する */
   textBase = dataBase = bssBase = 0;
   trSize = drSize = symSize = 0;
   for (int i=2; i<argc; i=i+1) {
-
-    printf("Opening and loading file %s ...\n",argv[i]);
-    xOpenIn(argv[i]);
-    // int newSymBase = symIdx;
-    //int newStrBase = strIdx;
+    xOpen(in,argv[i],"rb"); //入力ファイルオープン
+    int newSymBase = getSymIdx();
+    int newStrBase = getStrIdx();
     readHdr();
     //printf("%s:text=%04x,data=%04x,bss=%04x,Tr=%04x,Dr=%04x,Sym=%04x\n",
     //	   argv[i],cTextSize,cDataSize,cBssSize,cTrSize,cDrSize,cSymSize);
-    readSymTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize,cSymSize,textBase,dataBase);  //textBase,dataBaseも渡すようにした
-    readStrTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize+cSymSize);
+    readSymTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize,cSymSize,textBase,dataBase,in);  //textBase,dataBaseも渡すようにした
+    readStrTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize+cSymSize,in);
     //if (symIdx > maxSymIdx) maxSymIdx = symIdx;
     //if (strIdx > maxStrIdx) maxStrIdx = strIdx;
 
-    mergeStrTbl(/*newSymBase, newStrBase*/);
+    mergeStrTbl(newSymBase, newStrBase);  //文字列テーブルの統合
 
     textBase = textBase + cTextSize;
     dataBase = dataBase + cDataSize;
@@ -503,35 +495,15 @@ int main(int argc, char **argv) {
     trSize   = trSize   + cTrSize;
     drSize   = drSize   + cDrSize;
     symSize  = symSize  + cSymSize;
-    
-  printf("Open and load file %s done.\n",argv[i]);  //デバッグ用 
 
     fclose(in);
   }
-
-  printf("Open and load files all done.\n");  //デバッグ用
-
-
-  //この辺りでプログラムが停止するので調べてみる
-  printf("textSize = testBase...");//デバッグ用
   textSize = textBase;
-  printf("\tOK\n");
-
-  printf("dataSize = dataBase...");//デバッグ用
   dataSize = dataBase;
-  printf("\tOK\n");
-
-  printf("bssSize = bssBase...");//デバッグ用
   bssSize  = bssBase;
-  printf("\tOK\n");
-
-
-  printf("Merging Symbol table...");//デバッグ用
 
   mergeSymTbl(bssSize, symSize);                // シンボルテーブルの統合をする
-                                                // bssSize, symSize も再計算する
-
-  printf("Meage Symbol table all done.");
+                                                // bssSize, symSize も再計算する ←ここの変更ができていない
   writeHdr();                                   // ヘッダを出力する
 
   /* テキストセグメントを入力して結合後出力する */
@@ -540,10 +512,10 @@ int main(int argc, char **argv) {
   textBase=0;
   setRelIdx(0);
   for (int i=2; i<argc; i=i+1) {
-    xOpenIn(argv[i]);   //入力ファイルとしてオープン
+    xOpen(in,argv[i],"rb");   //入力ファイルオープン
     readHdr();
     int relBase = getRelIdx();  /*relIdx;*/
-    readRelTbl(HDRSIZ+cTextSize+cDataSize,cTrSize,symBase,textBase);
+    readRelTbl(HDRSIZ+cTextSize+cDataSize,cTrSize,symBase,textBase,in);
     copyCode(HDRSIZ,cTextSize,textBase,relBase);  // テキストをコピー
 
     textBase = textBase + cTextSize;
@@ -554,10 +526,10 @@ int main(int argc, char **argv) {
   /* データセグメントを入力して結合後出力する */
   dataBase = symBase = 0;
   for (int i=2; i<argc; i=i+1) {
-    xOpenIn(argv[i]);
+    xOpen(in,argv[i],"rb");
     readHdr();
     int relBase = getRelIdx();/*relIdx;*/
-    readRelTbl(HDRSIZ+cTextSize+cDataSize+cTrSize,cDrSize,symBase,dataBase);
+    readRelTbl(HDRSIZ+cTextSize+cDataSize+cTrSize,cDrSize,symBase,dataBase,in);
     copyCode(HDRSIZ+cTextSize,cDataSize,dataBase,relBase);   // データをコピー
 
     dataBase = dataBase + cDataSize;
@@ -567,13 +539,11 @@ int main(int argc, char **argv) {
 
   packSymTbl();                            // 名前表から結合した残骸を削除
 
-
-
-  writeRelTbl();                           // 再配置表を出力する
+  writeRelTbl(out);                           // 再配置表を出力する
   printRelTbl();                           // 再配置表をリスト出力する
-  writeSymTbl();                           // 名前表を出力する
+  writeSymTbl(out);                           // 名前表を出力する
   printSymTbl();                           // 名前表をリスト出力する
-  writeStrTbl();                           // 文字列表を出力する
+  writeStrTbl(out);                           // 文字列表を出力する
 
   fclose(out);
   //tblReport();                           // 各表の込み具合を確認する

@@ -17,8 +17,8 @@ char *curFile;                              // 現在の入力ファイル
 void error(char *str);                    // エラーメッセージを表示して終了
 void tblError(char *str);
 void fError(char *str);                    // ファイル名付きでエラー表示
-void xOpenIn(char *fname);                 // エラーチェック付きの fopen:入力ファイル用
-void xOpenOut(char *fname);                // エラーチェック付きの fopen:出力ファイル用
+void xOpen(FILE* file, char *fname, char *chmod);                 // エラーチェック付きの fopen:入力ファイル用
+//void xOpenOut(char *fname);                // エラーチェック付きの fopen:出力ファイル用
 void xSeek(int offset);                    // エラーチェック付きの SEEK ルーチン
 void putW(int x);                          // 1ワード出力ルーチン
 int getW();                                // 1ワード入力ルーチン

@@ -1,0 +1,199 @@
+<mxfile host="65bd71144e">
+    <diagram id="XCwBJ5t9vbnG8h-o-kIO" name="ページ1">
+        <mxGraphModel dx="891" dy="2164" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="ld.c" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fontSize=18;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="-480" width="360" height="480" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="- out : FILE*&lt;span style=&quot;white-space: pre; font-size: 18px;&quot;&gt;&#9;&lt;/span&gt;出力ファイル&lt;br style=&quot;font-size: 18px;&quot;&gt;- int : FILE*&amp;nbsp;&lt;span style=&quot;white-space: pre; font-size: 18px;&quot;&gt;&#9;&lt;/span&gt;入力ファイル&lt;br style=&quot;font-size: 18px;&quot;&gt;- 現在の入出力ファイルのTEXT, DATA, BSS, SYMS, Tr, Dr,サイズ&lt;br style=&quot;font-size: 18px;&quot;&gt;- 現在の入力ファイルの、各セグメントのロードアドレス&lt;br style=&quot;font-size: 18px;&quot;&gt;- 出力ファイルのTEXT, DATA, BSS, SYMS, Tr, Drサイズ" style="text;strokeColor=default;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=18;" parent="2" vertex="1">
+                    <mxGeometry y="30" width="360" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="+ writeHdr() : void" style="text;strokeColor=default;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=18;dashed=1;dashPattern=8 8;" parent="2" vertex="1">
+                    <mxGeometry y="230" width="360" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="71" value="+ readHdr() : void" style="text;strokeColor=default;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=18;dashed=1;dashPattern=8 8;" parent="2" vertex="1">
+                    <mxGeometry y="280" width="360" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="70" value="+ copyCode(offs : int, segSize : int, segBase : int, relBase : int) : void" style="text;strokeColor=default;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=18;dashed=1;dashPattern=8 8;" parent="2" vertex="1">
+                    <mxGeometry y="330" width="360" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="69" value="- usage(*name : char) : void" style="text;strokeColor=default;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=18;dashed=1;dashPattern=8 8;" parent="2" vertex="1">
+                    <mxGeometry y="380" width="360" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="67" value="+ main(argc : int, **argv : char) : int" style="text;strokeColor=default;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=18;dashed=1;dashPattern=8 8;" parent="2" vertex="1">
+                    <mxGeometry y="430" width="360" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="rel.c" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="130" width="280" height="380" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="- REL_SIZ = 6000&lt;br&gt;- relTbl[REL_SIZ] = Reloc&amp;nbsp;&lt;br&gt;" style="text;strokeColor=default;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="10" vertex="1">
+                    <mxGeometry y="30" width="280" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="- relTblError() : void&lt;br&gt;再配置表がパンクした時のエラー" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="10" vertex="1">
+                    <mxGeometry y="130" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="+ readRelTbl(offs : int, relSize : int, symBase : int, textBase : int, in : FILE*) : void&lt;br&gt;入力ファイルから再配置表の読み込み" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="10" vertex="1">
+                    <mxGeometry y="180" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="66" value="+ packSymTbl() : void&lt;br&gt;名前表の不要なエントリーを削除する" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="10" vertex="1">
+                    <mxGeometry y="230" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="65" value="+ writeRelTbl(FILE* out) : void&lt;br&gt;再配置表を出力ファイルに出力" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="10" vertex="1">
+                    <mxGeometry y="280" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="64" value="+ printRelTbl() : void&lt;br&gt;再配置表をリスト出力" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="10" vertex="1">
+                    <mxGeometry y="330" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="sym.c" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="1270" y="-480" width="280" height="530" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="- SYM_SIZ = 3000&lt;span style=&quot;white-space: pre;&quot;&gt;&#9;&lt;/span&gt;&lt;br&gt;- symTbl[SYM_SIZ] : SymTbl&lt;br&gt;" style="text;strokeColor=default;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="14" vertex="1">
+                    <mxGeometry y="30" width="280" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="- setMaxSymIdxIfNeeded(i : int) : void&lt;br&gt;名前表の最大サイズ設定" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="14" vertex="1">
+                    <mxGeometry y="130" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="- symTblError() : void&lt;br&gt;名前表がパンクした時のエラー" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="14" vertex="1">
+                    <mxGeometry y="180" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="61" value="+ readSymTbl(offs : int, sSize : int, textBase : int, dataBase : int, in : FILE*) : void&lt;br&gt;入力ファイルから名前表の読み込み" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="14" vertex="1">
+                    <mxGeometry y="230" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="60" value="+ mergeStrTbl() : void&amp;nbsp;&lt;br&gt;文字列表に新しく追加した綴りに、重複があれば統合" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="14" vertex="1">
+                    <mxGeometry y="280" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="59" value="+ mergeSymTbl(bssSize : int, symSize : int) : void&lt;br&gt;結合できる名前の結合" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="14" vertex="1">
+                    <mxGeometry y="330" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="58" value="+ writeSymTbl() : void&lt;br&gt;名前表をファイルへ出力" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="14" vertex="1">
+                    <mxGeometry y="380" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="57" value="+ printSymType(type : int) : void&lt;br&gt;名前の種類を印刷" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="14" vertex="1">
+                    <mxGeometry y="430" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="62" value="+ printSymTbl() : void&lt;br&gt;名前表をリスト出力" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="14" vertex="1">
+                    <mxGeometry y="480" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="str.c" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="950" y="180" width="280" height="480" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="- STR_SIZ = 16000&lt;span style=&quot;white-space: pre;&quot;&gt;&#9;&lt;/span&gt;&lt;br&gt;- strTbl[ STR_SIZ] : char[]&lt;br&gt;- strIdx = 0&lt;span style=&quot;white-space: pre;&quot;&gt;&#9;&lt;/span&gt;: int" style="text;strokeColor=default;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="18" vertex="1">
+                    <mxGeometry y="30" width="280" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="- setMaxStrIdxIfNeeded(i : int) : void&lt;br&gt;文字列表の最大サイズ設定" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="18" vertex="1">
+                    <mxGeometry y="130" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="46" value="- strTblError() : void&lt;br&gt;文字列表がパンクした時のエラー" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="18" vertex="1">
+                    <mxGeometry y="180" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" value="+ readStrTbl(offs : int) : void&lt;br&gt;文字列表の読み込み" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="18" vertex="1">
+                    <mxGeometry y="230" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="47" value="+ writeStrTbl() : void&lt;br&gt;文字列表を全てファイルへ出力" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="18" vertex="1">
+                    <mxGeometry y="280" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="44" value="+ cmpStr(n : int, m : int) : boolean&lt;br&gt;文字列表のn~番目とm~番目が同じか比較" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="18" vertex="1">
+                    <mxGeometry y="330" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="43" value="+ putStr( fp : FILE*, n : int) : void&lt;br&gt;文字列表のn番目の文字列をfpに出力" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="18" vertex="1">
+                    <mxGeometry y="380" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="+ packStrTbl(idxI : int, len : int) : void&lt;br&gt;文字列表から、統合した綴りを削除" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="18" vertex="1">
+                    <mxGeometry y="430" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="util.c" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="1880" y="270" width="280" height="380" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" value="- getB()&amp;nbsp;&lt;br&gt;- *curFile : char = &quot; &quot;" style="text;strokeColor=default;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="22" vertex="1">
+                    <mxGeometry y="30" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="+ error(str : string) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="22" vertex="1">
+                    <mxGeometry y="80" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="+ fError(str : string) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="22" vertex="1">
+                    <mxGeometry y="130" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="40" value="+ xOpen(file : FILE*, fname : string, chmod : char) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="22" vertex="1">
+                    <mxGeometry y="180" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="39" value="+ xSeek(offset : int) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="22" vertex="1">
+                    <mxGeometry y="230" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="38" value="+ putW(x : int) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="22" vertex="1">
+                    <mxGeometry y="280" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="+ getW() : int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="22" vertex="1">
+                    <mxGeometry y="330" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="48" value="SymTbl" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;strokeColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="1350" y="-890" width="140" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="49" value="+ strx : int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="48" vertex="1">
+                    <mxGeometry y="30" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="50" value="+ type : int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="48" vertex="1">
+                    <mxGeometry y="60" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="52" value="+ val : int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="48" vertex="1">
+                    <mxGeometry y="90" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="53" value="Reloc" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;strokeColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="1330" y="-720" width="140" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="54" value="+ addr : int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="53" vertex="1">
+                    <mxGeometry y="30" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" value="+ symx : int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="53" vertex="1">
+                    <mxGeometry y="60" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="91" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=8 8;fontSize=18;startArrow=none;startFill=0;endArrow=none;endFill=0;" parent="1" source="83" target="70" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="89" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontSize=18;dashed=1;dashPattern=8 8;startArrow=none;startFill=0;endArrow=none;endFill=0;" parent="1" source="85" target="5" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="90" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=8 8;fontSize=18;startArrow=none;startFill=0;endArrow=none;endFill=0;" parent="1" source="86" target="71" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="92" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=8 8;fontSize=18;startArrow=none;startFill=0;endArrow=none;endFill=0;" parent="1" source="87" target="69" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="93" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;dashPattern=8 8;fontSize=18;startArrow=none;startFill=0;endArrow=none;endFill=0;" parent="1" source="88" target="67" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="94" value="" style="group" parent="1" vertex="1" connectable="0">
+                    <mxGeometry x="740" y="-200" width="450" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="83" value="&lt;span style=&quot;font-size: 18px; text-align: left;&quot;&gt;プログラムやデータをリロケートしながらコピーする&lt;/span&gt;" style="text;strokeColor=default;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;dashPattern=8 8;strokeWidth=0.5;" parent="94" vertex="1">
+                    <mxGeometry y="60" width="450" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="85" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial; font-size: 18px;&quot;&gt;ヘッダを出力ファイルに書き出す&lt;/span&gt;&lt;/div&gt;" style="text;strokeColor=default;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;dashPattern=8 8;strokeWidth=0.5;" parent="94" vertex="1">
+                    <mxGeometry width="450" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="86" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;入力ファイルからヘッダを読み込む&lt;/span&gt;&lt;/div&gt;" style="text;strokeColor=default;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;dashPattern=8 8;strokeWidth=0.5;" parent="94" vertex="1">
+                    <mxGeometry y="30" width="450" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="87" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial; font-size: 18px;&quot;&gt;使い方を表示&lt;/span&gt;&lt;/div&gt;" style="text;strokeColor=default;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;dashPattern=8 8;strokeWidth=0.5;" parent="94" vertex="1">
+                    <mxGeometry y="90" width="450" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="88" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;ファイルをリンクする&lt;/span&gt;&lt;/div&gt;" style="text;strokeColor=default;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;dashPattern=8 8;strokeWidth=0.5;" parent="94" vertex="1">
+                    <mxGeometry y="120" width="450" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="95" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;名前表の操作に関する処理を担うクラス&lt;/span&gt;&lt;/div&gt;" style="text;strokeColor=default;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;dashPattern=8 8;strokeWidth=0.5;" parent="1" vertex="1">
+                    <mxGeometry x="1175" y="-520" width="450" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="96" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;リンク操作を総括するクラス&lt;/span&gt;&lt;/div&gt;" style="text;strokeColor=default;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;dashPattern=8 8;strokeWidth=0.5;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="-520" width="450" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="97" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;再配置表の操作に関する処理を担うクラス&lt;/span&gt;&lt;/div&gt;" style="text;strokeColor=default;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;dashPattern=8 8;strokeWidth=0.5;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="90" width="360" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="98" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;文字列表の操作に関する処理を担うクラス&lt;/span&gt;&lt;/div&gt;" style="text;strokeColor=default;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;dashPattern=8 8;strokeWidth=0.5;" parent="1" vertex="1">
+                    <mxGeometry x="890" y="140" width="360" height="30" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -1,10 +1,5 @@
-//#include <stdlib.hmm>
-//#include <stdio.h>
+int a;
+int b;
+int c;
 
-public int a=3;
-int b=10;
-int c=1;
-
-int f(){
-    return 0;
-}
+public int f(){}

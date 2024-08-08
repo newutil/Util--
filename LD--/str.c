@@ -13,7 +13,6 @@ char strTbl[STR_SIZ];                       // 文字列表
 int  strIdx = 0;                            // 表のどこまで使用したか
 int  maxStrIdx = 0;
 
-
 static void setMaxStrIdxIfNeeded(int i){    // 文字列表のサイズ合わせ
   if (i > maxStrIdx) maxStrIdx = i;
 }
@@ -41,10 +40,10 @@ static void strTblError() {
   exit(1);
 }
 
-void readStrTbl(int offs) {                 // 文字列表の読み込み
+void readStrTbl(int offs,FILE* in) {                 // 文字列表の読み込み
   xSeek(offs);                              // 文字列表の位置に移動
   int c;
-  while ((c=getB())!=EOF) {                 // EOFになるまで読み込む
+  while ((c=getB(in))!=EOF) {                 // EOFになるまで読み込む
     if (strIdx>=STR_SIZ) strTblError();
     strTbl[strIdx] = c;
     strIdx = strIdx + 1;
@@ -52,9 +51,9 @@ void readStrTbl(int offs) {                 // 文字列表の読み込み
   setMaxStrIdxIfNeeded(strIdx);         //文字列表の大きさを更新する
 }
 
-void writeStrTbl() {                        // 文字列表をファイルへ出力
+void writeStrTbl(FILE* out) {                        // 文字列表をファイルへ出力
   for (int i=0; i<strIdx; i=i+1) {          // 全ての文字について
-    putB(strTbl[i]);                        //   出力する
+    putB(strTbl[i],out);                        //   出力する
   }
 }
 
@@ -82,4 +81,5 @@ void packStrTbl(int idxI,int len){   //  文字列表から統合した綴りを
 	  strTbl[k] = strTbl[k+len];        //     文字列を前につめる
 	strIdx = strIdx - len;              //   文字列表を縮小
 }
+
 

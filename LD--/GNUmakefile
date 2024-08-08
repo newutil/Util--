@@ -39,7 +39,7 @@ all: ld--
 
 ld-- : ld.c GNUmakefile
 	${CC} ${CFLAGS} -DDATE=${DATE} -DVER=${VER} \
-	-o ld-- ld.c
+	-o ld-- ld.c rel.c sym.c str.c util.c 
 
 install: ld--
 	install -d -m 755 /usr/local/bin
