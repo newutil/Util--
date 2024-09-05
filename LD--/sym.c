@@ -86,11 +86,11 @@ static void setMaxSymIdxIfNeeded(int i){                      //名前表のサ�
 }
 
 
-/* 表がパンクしたときに使用する */
-static void symTblError() {
-  fprintf(stderr, "  名前表がパンクした\t%5d/%5d\n", maxSymIdx, SYM_SIZ);
-  exit(1);
-}
+// /* 表がパンクしたときに使用する */   //utilに移動
+// static void symTblError() {
+//   fprintf(stderr, "  名前表がパンクした\t%5d/%5d\n", maxSymIdx, SYM_SIZ);
+//   exit(1);
+// }
 
 void readSymTbl(int offs, int sSize,int textBase,int dataBase,FILE* in) {      // 名前表の読み込み
 
@@ -105,7 +105,7 @@ void readSymTbl(int offs, int sSize,int textBase,int dataBase,FILE* in) {      /
       val = val + textBase;                 //     TEXTセグメントの場合
     else if (type==SYMDATA)                 //     DATAセグメントの場合
       val = val + dataBase;                 //     BSSセグメントの場合はサイズ
-    if (symIdx>=SYM_SIZ) symTblError();
+    if (symIdx>=SYM_SIZ) tblError("名前表がパンクした", maxSymIdx, SYM_SIZ);
     symTbl[symIdx].strx = strx;             // 名前の綴
     symTbl[symIdx].type = type;             // 名前の型
     symTbl[symIdx].val  = val;              // 名前の値
@@ -144,7 +144,20 @@ void mergeStrTbl(int symIdxB, int strIdxB) { // 文字列表に新しく追加�
     }
   }
 }
-//mergeStrTblとmergeSym
+
+void updateSymStrx(int curIdx, int changeIdx, int len){ //文字列表の統合に合わせて
+                                                        //名前表のアドレスを調整する
+  for(int i=0; i<symIdx; i=i+1) {
+    int idxI = symTbl[i].strx;
+    if(idxI == changeIdx) {                 //統合した文字列を指しているならば
+      symTbl[i].strx = curIdx;              //以前からある方に合わせる
+    }
+    else if(idxI >= changeIdx) {            //前に詰めた部分にあるものは
+      symTbl[i].strx -= len;                //位置調整 
+    }
+  }
+
+}
 
 void mergeSymTbl(int bssSize, int symSize) {                        // 名前の結合を行う
   for (int i=0; i<symIdx; i=i+1) {          // 全ての名前について
@@ -209,6 +222,10 @@ void printSymType(int type) {               // 名前の種類を印刷
   else error("printSymType:バグ");
 }
 
+void printSymName(int symx){  //名前表の中から一つの名前の文字列を印刷
+  putStr(stdout,symTbl[symx].strx);
+}
+
 void printSymTbl() {                        // 名前表をリストへ出力
   printf("*** 名前表 ***\n");
   printf("No.\tName\tType\tValue\n");
@@ -224,3 +241,8 @@ void printSymTbl() {                        // 名前表をリストへ出力
     printf("\t%04x\n", val&0xffff);
   }
 }
+
+// //文字列表の統合にあわせて、名前表の文字列を更新
+// void updateSymStrx(int curIdx, int changeIdx, int size){  
+
+// }

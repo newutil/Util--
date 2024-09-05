@@ -56,11 +56,11 @@ void setRelTbl(int index, int newAddr, int newSymx){  //再配置表のセッタ
 
 
 
-/* 表がパンクしたときに使用する */
-static void relTblError() {
-  fprintf(stderr, "  再配置表がパンクした\t%5d/%5d\n", relIdx, REL_SIZ);
-  exit(1);
-}
+/* 表がパンクしたときに使用する */  //utilに移動
+// static void relTblError() {
+//   fprintf(stderr, "  再配置表がパンクした\t%5d/%5d\n", relIdx, REL_SIZ);
+//   exit(1);
+// }
 
 void readRelTbl(int offs, int relSize, int symBase, int textBase,FILE* in){
   xSeek(offs);
@@ -70,7 +70,7 @@ void readRelTbl(int offs, int relSize, int symBase, int textBase,FILE* in){
     symx = symx + symBase / 4;              //   名前表の1エントリは4バイト
     while (getSymTbl(symx,"type")/*symTbl[symx].type*/==SYMPTR)       // PTRならポインターをたぐる
       symx = getSymTbl(symx,"val"); /*symTbl[symx].val;*/              //   PTRを使用する再配置情報はない
-    if (relIdx>=REL_SIZ) relTblError();
+    if (relIdx>=REL_SIZ) tblError("再配置表がパンクした",relIdx,REL_SIZ);
     if ((addr&1)!=0) fError("再配置表に奇数アドレスがある");
     relTbl[relIdx].addr = addr;
     relTbl[relIdx].symx = symx;             // PTRではなく本体を指す
@@ -120,7 +120,8 @@ void printRelTbl() {                       // 再配置表をリスト出力
     int type = getSymTbl(symx,"type");/*symTbl[symx].type;*/
     
     printf("%04x\t",addr);
-    putStr(stdout,getSymTbl(symx,"strx")/*symTbl[symx].strx*/);
+    printSymName(symx);
+    //putStr(stdout,getSymTbl(symx,"strx")/*symTbl[symx].strx*/); //シンボルテーブルの内容を印刷する関数を用意する
     printf("\t");
     printSymType(type);
     printf("\t%d\n", symx);

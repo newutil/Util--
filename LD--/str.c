@@ -34,17 +34,17 @@ int strLen(int n) {                         // 文字列表中の文字列(n)の
 }
 
 
-/* 表がパンクしたときに使用する */
-static void strTblError() {
-  fprintf(stderr, "  文字列表がパンクした\t%5d/%5d\n", maxStrIdx, STR_SIZ);
-  exit(1);
-}
+/* 表がパンクしたときに使用する */    //utilに移動
+// static void strTblError() {
+//   fprintf(stderr, "  文字列表がパンクした\t%5d/%5d\n", maxStrIdx, STR_SIZ);
+//   exit(1);
+// }
 
 void readStrTbl(int offs,FILE* in) {                 // 文字列表の読み込み
   xSeek(offs);                              // 文字列表の位置に移動
   int c;
   while ((c=getB(in))!=EOF) {                 // EOFになるまで読み込む
-    if (strIdx>=STR_SIZ) strTblError();
+    if (strIdx>=STR_SIZ) tblError("文字列表がパンクした",maxStrIdx, STR_SIZ);
     strTbl[strIdx] = c;
     strIdx = strIdx + 1;
   }
@@ -82,4 +82,8 @@ void packStrTbl(int idxI,int len){   //  文字列表から統合した綴りを
 	strIdx = strIdx - len;              //   文字列表を縮小
 }
 
-
+void mergeStrTbl(int strIdxB) { // 文字列表に新しく追加した綴りに
+                                            //   重複があれば統合する
+  
+  
+}

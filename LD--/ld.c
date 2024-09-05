@@ -74,49 +74,11 @@ int drSize;                                // 出力ファイルのDr  サイズ
 
 
 
-// void error(char *str) {                   // エラーメッセージを表示して終了
-//   fprintf(stderr, "%s\n", str);
-//   exit(1);
-// }
-
-// void tblError(char *str);
-
 // // ファイル関係
 FILE* out;                                 // 出力ファイル
 FILE* in;                                  // 入力ファイル
 //char *curFile = "";                        // 現在の入力ファイル
 
-// #define getB()    fgetc(in)
-// #define putB(c)   fputc(c,out)
-
-// void fError(char *str) {                   // ファイル名付きでエラー表示
-//   perror(curFile);
-//   error(str);
-// }
-
-// void xOpen(char *fname) {                  // エラーチェック付きの fopen
-//   curFile = fname;
-//   if ((in = fopen(fname, "rb"))==NULL) {   // 入力ファイルオープン
-//     fError("can't open");
-//   }
-// }
-  
-// void xSeek(int offset) {                   // エラーチェック付きの SEEK ルーチン
-//   if ((offset&1)!=0 || fseek(in, (long)offset, SEEK_SET)!=0)
-//     fError("file format");
-// }
-
-// void putW(int x) {                          // 1ワード出力ルーチン
-//   putB(x>>8);
-//   putB(x);
-// }
-
-// int getW() {                                // 1ワード入力ルーチン
-//   int x1 = getB();
-//   int x2 = getB();
-//   if (x1==EOF || x2==EOF) fError("undexpected EFO");
-//   return (x1 << 8) | x2;
-// }
 
 void writeHdr() {                           // ヘッダ書き出しルーチン
   putW(MAGIC,out);                             //   マジックナンバー
@@ -140,284 +102,6 @@ void readHdr() {                            // ヘッダ読込みルーチン
   cTrSize=getW(in);                           //   Trサイズ
   cDrSize=getW(in);                           //   Drサイズ
 }
-
-/* 文字列表 */
-//extern STR_SIZ;                                // 文字列表の大きさ
-
-// char strTbl[STR_SIZ];                       // 文字列表
-// int  strIdx = 0;                            // 表のどこまで使用したか
-
-// int strLen(int n) {                         // 文字列表中の文字列(n)の長さ
-//   int i = n;
-//   while(strTbl[i]!='\0')
-//     i = i + 1;
-//   return i - n + 1;                         // '\0' も数えた値を返す
-// }
-
-// boolean cmpStr(int n, int m) {              // 文字列表[n]〜と[m]〜 を比較する
-//   for (int i=0; ; i=i+1) {
-//     char t = strTbl[n+i];
-//     char s = strTbl[m+i];
-//     if (t!=s) return false;                 //   異なる
-//     if (t=='\0') break;                     //   同じ
-//   }
-//   return true;
-// }
-
-// void putStr(FILE* fp,int n) {               // 文字列表の文字列[n]を表示する
-//   if (n>0x3fff || n>=strIdx) error("putStr:バグ");
-//   while (strTbl[n]!='\0') {
-//     putc(strTbl[n],fp);
-//     n = n + 1;
-//   }
-// }
-
-// void readStrTbl(int offs) {                 // 文字列表の読み込み
-//   xSeek(offs);                              // 文字列表の位置に移動
-//   int c;
-//   while ((c=getB())!=EOF) {                 // EOFになるまで読み込む
-//     if (strIdx>=STR_SIZ) tblError("文字列表がパンクした");
-//     strTbl[strIdx] = c;
-//     strIdx = strIdx + 1;
-//   }
-// }
-
-// void writeStrTbl() {                        // 文字列表をファイルへ出力
-//   for (int i=0; i<strIdx; i=i+1) {          // 全ての文字について
-//     putB(strTbl[i]);                        //   出力する
-//   }
-// }
-
-// /* 名前表 */
-// #define SYM_SIZ  3000                       // 名前表の大きさ (<=16kエントリ)
-
-// struct SymTbl {                             // 名前表の型定義
-//   int strx;                                 // 文字列表の idx (14bitが有効)
-//   int type;                                 // type の意味は下に #define
-//   int val;                                  // 名前の値
-// };
-
-// #define SYMUNDF 0                           // 未定義ラベル
-// #define SYMTEXT 1                           // TEXTのラベル
-// #define SYMDATA 2                           // DATAのラベル
-// #define SYMBSS  3                           // BSSのラベル
-// #define SYMPTR  4                           // 表の他要素へのポインタ
-
-// struct SymTbl symTbl[SYM_SIZ];              // 名前表本体の定義
-// int symIdx = 0;                             // 表のどこまで使用したか
-
-// void readSymTbl(int offs, int sSize) {      // 名前表の読み込み
-//   xSeek(offs);                              // 名前表の位置に移動
-//   for (int i=0; i<sSize; i=i+4) {           // ファイルの名前表について
-//     int strx = getW();
-//     int type = (strx >> 14) & 0x3;          // 名前の型を分離
-//     strx = strIdx + (strx & 0x3fff);        // 名前のインデクスを分離
-//     int val  = getW();                      // 名前の値はセグメントの
-//     if (type==SYMTEXT)                      //   ロードアドレスにより変化する
-//       val = val + textBase;                 //     TEXTセグメントの場合
-//     else if (type==SYMDATA)                 //     DATAセグメントの場合
-//       val = val + dataBase;                 //     BSSセグメントの場合はサイズ
-//     if (symIdx>=SYM_SIZ) tblError("名前表がパンクした");
-//     symTbl[symIdx].strx = strx;             // 名前の綴
-//     symTbl[symIdx].type = type;             // 名前の型
-//     symTbl[symIdx].val  = val;              // 名前の値
-//     symIdx = symIdx + 1;
-//   }
-// }
-
-// void mergeStrTbl(int symIdxB,int strIdxB) { // 文字列表に新しく追加した綴りに
-//                                             //   重複があれば統合する
-//   for (int i=symIdxB; i<symIdx; i=i+1) {   // 追加された文字列について
-//     int idxI = symTbl[i].strx;
-//     if (idxI < strIdxB) continue;           //  既に統合済みなら処理しない
-//     for (int j=0; j<symIdxB; j=j+1) {      //  以前からある文字列と比較
-//       int idxJ = symTbl[j].strx;
-//       if (cmpStr(idxI, idxJ)) {             //  同じ綴が見つかったら
-// 	int len=strLen(idxI);
-// 	for (int k=i; k<symIdx; k=k+1) {    //  名前表の残り部分について
-// 	  int idxK = symTbl[k].strx;
-// 	  if (idxK == idxI)                 //   同じ文字列は
-// 	    symTbl[k].strx = idxJ;          //     以前からある方を使用する
-// 	  else if (idxK > idxI)             //   前につめる部分にある文字列は
-// 	    symTbl[k].strx = idxK - len;    //     位置調整
-// 	}
-// 	for (int k=idxI; k<strIdx-len; k=k+1)//  文字列表から統合した綴り削除
-// 	  strTbl[k] = strTbl[k+len];        //     文字列を前につめる
-// 	strIdx = strIdx - len;              //   文字列表を縮小
-// 	break;
-//       }
-//     }
-//   }
-// }
-
-// void mergeSymTbl() {                        // 名前の結合を行う
-//   for (int i=0; i<symIdx; i=i+1) {          // 全ての名前について
-//     int typeI = symTbl[i].type;
-//     if (strTbl[symTbl[i].strx]=='.')        // ローカルは無視する
-//       continue;
-//     for (int j=0; j<i; j=j+1) {
-//       int typeJ = symTbl[j].type;           // PTR以外で同じ綴りを探す
-//       if (typeJ!=SYMPTR && cmpStr(symTbl[i].strx,symTbl[j].strx)) {
-// 	if (typeJ==SYMUNDF && typeI!=SYMUNDF) {        // 後ろ(i)に統合
-// 	  symTbl[j].type = SYMPTR;
-// 	  symTbl[j].val  = i;
-// 	} else if (typeJ!=SYMUNDF && typeI==SYMUNDF) { // 前(j)に統合
-// 	  symTbl[i].type = SYMPTR;
-// 	  symTbl[i].val  = j;
-// 	} else if (typeJ==SYMUNDF && typeI==SYMUNDF) { // 前(j)に統合
-// 	  symTbl[i].type = SYMPTR;
-// 	  symTbl[i].val  = j;
-// 	} else if(typeJ==SYMBSS  && typeI==SYMDATA) {  // BSSとDATAはDATAに統合
-// 	  bssSize = bssSize - symTbl[j].val;
-// 	  symTbl[j].type = SYMPTR;
-// 	  symTbl[j].val  = i;
-// 	} else if(typeJ==SYMDATA  && typeI==SYMBSS) { // DATAとBSSもDATAに統合
-// 	  bssSize = bssSize - symTbl[i].val;
-// 	  symTbl[i].type = SYMPTR;
-// 	  symTbl[i].val  = j;
-// 	} else if (typeJ==SYMBSS && typeI==SYMBSS) {  // BSS同士は
-// 	  int valJ = symTbl[j].val;
-// 	  int valI = symTbl[i].val;
-// 	  if (valJ<valI) {                            //   サイズの大きい方に
-// 	    bssSize = bssSize - valJ;                 //      統合する
-// 	    symTbl[j].type = SYMPTR;
-// 	    symTbl[j].val  = i;
-// 	  } else {
-// 	    bssSize = bssSize - valI;
-// 	    symTbl[i].type = SYMPTR;
-// 	    symTbl[i].val  = j;
-// 	  }
-// 	} else {
-// 	  putStr(stderr,symTbl[i].strx);
-// 	  error(":ラベルの二重定義");
-// 	}
-// 	symSize = symSize - 4;                        // 1項目4バイト減少
-// 	break;
-//       }
-//     }
-//   }
-// }
-
-// void writeSymTbl() {                        // 名前表をファイルへ出力
-//   for (int i=0; i<symIdx; i=i+1) {
-//     putW((symTbl[i].type<<14) | symTbl[i].strx);
-//     putW(symTbl[i].val);
-//   }
-// }
-
-// void printSymType(int type) {               // 名前の種類を印刷
-//   if (type==SYMTEXT) printf("TEXT");        //   = 1
-//   else if (type==SYMDATA) printf("DATA");   //   = 2
-//   else if (type==SYMBSS)  printf("BSS");    //   = 3
-//   else if (type==SYMUNDF) printf("UNDF");   //   = 0
-//   else error("printSymType:バグ");
-// }
-
-// void printSymTbl() {                        // 名前表をリストへ出力
-//   printf("*** 名前表 ***\n");
-//   printf("No.\tName\tType\tValue\n");
-//   for (int i=0; i<symIdx; i=i+1) {
-//     int strx = symTbl[i].strx;
-//     int type = symTbl[i].type;
-//     int val  = symTbl[i].val;
-
-//     printf("%d\t",i);
-//     putStr(stdout,strx);
-//     printf("\t");
-//     printSymType(type);
-//     printf("\t%04x\n", val&0xffff);
-//   }
-// }
-
-/* 再配置表 */
-// #define REL_SIZ  6000                       // 再配置表の大きさ
-
-// struct Reloc {                              // 再配置表
-//   int addr;                                 // ポインタのセグメント内 Offs
-//   int symx;                                 // シンボルテーブル上の番号
-// };
-
-// struct Reloc relTbl[REL_SIZ];               // 再配置表の定義
-// int relIdx;                                 // 表のどこまで使用したか
-
-// void readRelTbl(int offs, int relSize, int symBase, int textBase){
-//   xSeek(offs);
-//   for (int i=0; i<relSize; i=i+4) {         // 再配置表の1エントリは4バイト
-//     int addr = getW() + textBase;           // 再配置アドレス
-//     int symx = getW() & 0x3fff;             // 名前表のエントリ番号
-//     symx = symx + symBase / 4;              //   名前表の1エントリは4バイト
-//     while (symTbl[symx].type==SYMPTR)       // PTRならポインターをたぐる
-//       symx = symTbl[symx].val;              //   PTRを使用する再配置情報はない
-//     if (relIdx>=REL_SIZ) tblError("再配置表がパンクした");
-//     if ((addr&1)!=0) fError("再配置表に奇数アドレスがある");
-//     relTbl[relIdx].addr = addr;
-//     relTbl[relIdx].symx = symx;             // PTRではなく本体を指す
-//     relIdx = relIdx + 1;
-//   }
-// }
-
-// void packSymTbl()  {                        // 名前表の不要エントリーを削除
-//   int i = 0;
-//   while (i<symIdx) {                        // 全てのエントリーについて
-//     if (symTbl[i].type==SYMPTR) {           // PTRなら以下のように削除する
-//       for (int j=0; j<relIdx; j=j+1) {      //   再配置情報全てについて
-// 	if (relTbl[j].symx>=i)              //     名前表の削除位置より後ろを
-// 	  relTbl[j].symx=relTbl[j].symx-1;  //     参照しているインデクスを調整
-//       }
-//       for (int j=i; j<symIdx-1; j=j+1) {    //   名前表を前につめる
-// 	symTbl[j].strx = symTbl[j+1].strx;
-// 	symTbl[j].type = symTbl[j+1].type;
-// 	symTbl[j].val  = symTbl[j+1].val;
-//       }
-//       symIdx = symIdx - 1;                  //   名前表を縮小する
-//     } else
-//       i = i + 1;                            // PTR以外なら進める
-//   }
-// }
-
-// void writeRelTbl() {                       // 再配置表をファイルへ出力
-//   for (int i=0; i<relIdx; i=i+1) {
-//     int addr = relTbl[i].addr;
-//     int symx = relTbl[i].symx;
-//     int type = symTbl[symx].type;
-//     putW(addr);
-//     putW((type<<14) | symx);
-//   }
-// }
-
-// void printRelTbl() {                       // 再配置表をリスト出力
-//   printf("*** 再配置表 ***\n");
-//   printf("Addr\tName\tType\tNo.\n");
-//   for (int i=0; i<relIdx; i=i+1) {
-//     int addr = relTbl[i].addr;
-//     int symx = relTbl[i].symx;
-//     int type = symTbl[symx].type;
-    
-//     printf("%04x\t",addr);
-//     putStr(stdout,symTbl[symx].strx);
-//     printf("\t");
-//     printSymType(type);
-//     printf("\t%d\n", symx);
-//   }
-//   printf("\n");
-// }
-
-/* 表の込み具合を確認する */
-//int maxStrIdx = 0;                         // 文字列表の最大値
-//int maxSymIdx = 0;                         // 名前表の最大値
-
-// void tblReport(void) {
-//   fprintf(stderr, "文字列表\t%5d/%5d\n", maxStrIdx, STR_SIZ);
-//   fprintf(stderr, "  名前表\t%5d/%5d\n", maxSymIdx, SYM_SIZ);
-//   fprintf(stderr, "再配置表\t%5d/%5d\n", relIdx, REL_SIZ);
-// }
-
-// /* 表がパンクしたときに使用する */
-// void tblError(char *str) {
-//   fprintf(stderr, "%s\n", str);
-//   tblReport();
-//   exit(1);
-// }
 
 /* プログラムやデータをリロケートしながらコピーする */
 void copyCode(int offs, int segSize, int segBase, int relBase) {
@@ -465,7 +149,7 @@ int main(int argc, char **argv) {
     exit(0);
   }
 
-  xOpen(out,argv[1],"wb");    //出力ファイルオープン
+  out = xOpen(argv[1],"wb");    //出力ファイルオープン
   // if ((out = fopen(argv[1],"wb"))==NULL) {    // 出力ファイルオープン
   //   perror(argv[1]);
   //   exit(1);
@@ -475,7 +159,7 @@ int main(int argc, char **argv) {
   textBase = dataBase = bssBase = 0;
   trSize = drSize = symSize = 0;
   for (int i=2; i<argc; i=i+1) {
-    xOpen(in,argv[i],"rb"); //入力ファイルオープン
+    in = xOpen(argv[i],"rb"); //入力ファイルオープン  //in = の形に修正すること
     int newSymBase = getSymIdx();
     int newStrBase = getStrIdx();
     readHdr();
@@ -512,9 +196,9 @@ int main(int argc, char **argv) {
   textBase=0;
   setRelIdx(0);
   for (int i=2; i<argc; i=i+1) {
-    xOpen(in,argv[i],"rb");   //入力ファイルオープン
+    in = xOpen(argv[i],"rb");   //入力ファイルオープン
     readHdr();
-    int relBase = getRelIdx();  /*relIdx;*/
+    int relBase = getRelIdx();  /*relIdx; */
     readRelTbl(HDRSIZ+cTextSize+cDataSize,cTrSize,symBase,textBase,in);
     copyCode(HDRSIZ,cTextSize,textBase,relBase);  // テキストをコピー
 
@@ -526,7 +210,7 @@ int main(int argc, char **argv) {
   /* データセグメントを入力して結合後出力する */
   dataBase = symBase = 0;
   for (int i=2; i<argc; i=i+1) {
-    xOpen(in,argv[i],"rb");
+    in = xOpen(argv[i],"rb");
     readHdr();
     int relBase = getRelIdx();/*relIdx;*/
     readRelTbl(HDRSIZ+cTextSize+cDataSize+cTrSize,cDrSize,symBase,dataBase,in);

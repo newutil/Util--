@@ -9,19 +9,26 @@
 #define SYMDATA 2                           // DATAのラベル
 #define SYMBSS  3                           // BSSのラベル
 #define SYMPTR  4                           // 表の他要素へのポインタ
-FILE* out;                                 // 出力ファイル
-FILE* in;                                  // 入力ファイル
+// FILE* out;                                 // 出力ファイル
+// FILE* in;                                  // 入力ファイル
 char *curFile;                              // 現在の入力ファイル
+
+#ifndef getB()
 #define getB()    fgetc(in)
-#define putB(c)   fputc(c,out)
+#endif
+
+#ifndef putB(c,out)
+#define putB(c,out)   fputc(c,out)
+#endif
 void error(char *str);                    // エラーメッセージを表示して終了
 void tblError(char *str);
 void fError(char *str);                    // ファイル名付きでエラー表示
-void xOpen(FILE* file, char *fname, char *chmod);                 // エラーチェック付きの fopen:入力ファイル用
+void tblError(char *str,int index, int size);   //表がパンクした時のエラー表示
+FILE* xOpen(char *fname, char *chmod);                 // エラーチェック付きの fopen:入力ファイル用
 //void xOpenOut(char *fname);                // エラーチェック付きの fopen:出力ファイル用
 void xSeek(int offset);                    // エラーチェック付きの SEEK ルーチン
-void putW(int x);                          // 1ワード出力ルーチン
-int getW();                                // 1ワード入力ルーチン
+void putW(int x,FILE* out);                          // 1ワード出力ルーチン
+int getW(FILE* in);                                // 1ワード入力ルーチン
 
 
 #endif

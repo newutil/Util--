@@ -23,11 +23,20 @@ void fError(char *str) {                   // ファイル名付きでエラー�
   error(str);
 }
 
-void xOpen(FILE* file,char *fname, char *chmod) {                  // エラーチェック付きの fopen
+FILE* xOpen(char *fname, char *chmod) {                  // エラーチェック付きの fopen
+  FILE* file;
   curFile = fname;
   if ((file = fopen(fname, chmod))==NULL) {   // 入力ファイルオープン
     fError("can't open");
   }
+  return file;
+
+}
+
+void tblError(char *str, int index, int size) {     //表がパンクした時のエラー表示
+  fprintf(stderr, "%s\t%5d/%5d\n",str,index,size);
+  exit(1);
+
 }
 
 // void xOpenOut(char *fname){                 // エラーチェック付きの fopen
