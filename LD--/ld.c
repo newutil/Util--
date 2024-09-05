@@ -55,17 +55,18 @@
 #define MAGIC    0x0107                    // .o 形式のマジック番号
 #define HDRSIZ   16                        // .o 形式のヘッダーサイズ
 
+// readHdr と main の共有変数
 int cTextSize;                             // 現在の入力ファイルのTEXTサイズ
 int cDataSize;                             // 現在の入力ファイルのDATAサイズ
 int cBssSize;                              // 現在の入力ファイルのBSS サイズ
 int cSymSize;                              // 現在の入力ファイルのSYMSサイズ
 int cTrSize;                               // 現在の入力ファイルのTr  サイズ
 int cDrSize;                               // 現在の入力ファイルのDr  サイズ
-int textBase;                              // 現在の入力ファイルの
-int dataBase;                              //   各セグメントの
-int bssBase;                               //     ロードアドレス
 
+// writeHdr と copyCode と main の共有変数
 int textSize;                              // 出力ファイルのTEXTサイズ
+
+// writeHdr と main の共有変数
 int dataSize;                              // 出力ファイルのDATAサイズ
 int bssSize;                               // 出力ファイルのBSS サイズ
 int symSize;                               // 出力ファイルのSYMSサイズ
@@ -109,8 +110,8 @@ void copyCode(int offs, int segSize, int segBase, int relBase) {
   int rel = relBase;
   for (int i=segBase; i<segBase+segSize; i=i+WORD) {
     int w = getW(in);
-    if (rel</*relIdx*/getRelIdx() && /*relTbl[rel].addr*/getRelTbl(rel,"addr")==i) {  // ポインタのアドレスに達した
-      int symx = getRelTbl(rel,"symx");/*relTbl[rel].symx;*/            // 名前表のインデクスに変換
+    if (rel<getRelIdx() && getRelTbl(rel).addr==i) {//ポインタのアドレスに達した
+      int symx = getRelTbl(rel).symx;               // 名前表のインデクスに変換
       int type = getSymTbl(symx,"type");/*symTbl[symx].type;*/
       if (type!=SYMUNDF && type!=SYMBSS) {    // UNDF と BSS は 0 のまま
 	w = getSymTbl(symx,"val");/*symTbl[symx].val;*/
@@ -137,6 +138,10 @@ static void usage(char *name) {
 
 // main 関数
 int main(int argc, char **argv) {
+  int textBase;                              // 現在の入力ファイルの
+  int dataBase;                              //   各セグメントの
+  int bssBase;                               //     ロードアドレス
+
   if (argc>1 &&
       (strcmp(argv[1],"-v")==0 ||              //  "-v", "-h" で、使い方と
        strcmp(argv[1],"-h")==0   ) ) {         //   バージョンを表示
@@ -150,10 +155,6 @@ int main(int argc, char **argv) {
   }
 
   out = xOpen(argv[1],"wb");    //出力ファイルオープン
-  // if ((out = fopen(argv[1],"wb"))==NULL) {    // 出力ファイルオープン
-  //   perror(argv[1]);
-  //   exit(1);
-  // }
 
   /* 入力ファイルのシンボルテーブルを読み込んで統合する */
   textBase = dataBase = bssBase = 0;
@@ -162,13 +163,11 @@ int main(int argc, char **argv) {
     in = xOpen(argv[i],"rb"); //入力ファイルオープン  //in = の形に修正すること
     int newSymBase = getSymIdx();
     int newStrBase = getStrIdx();
+
     readHdr();
-    //printf("%s:text=%04x,data=%04x,bss=%04x,Tr=%04x,Dr=%04x,Sym=%04x\n",
-    //	   argv[i],cTextSize,cDataSize,cBssSize,cTrSize,cDrSize,cSymSize);
-    readSymTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize,cSymSize,textBase,dataBase,in);  //textBase,dataBaseも渡すようにした
+    readSymTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize,
+               cSymSize,textBase,dataBase,in);
     readStrTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize+cSymSize,in);
-    //if (symIdx > maxSymIdx) maxSymIdx = symIdx;
-    //if (strIdx > maxStrIdx) maxStrIdx = strIdx;
 
     mergeStrTbl(newSymBase, newStrBase);  //文字列テーブルの統合
 
@@ -182,23 +181,25 @@ int main(int argc, char **argv) {
 
     fclose(in);
   }
+
   textSize = textBase;
   dataSize = dataBase;
   bssSize  = bssBase;
 
-  mergeSymTbl(bssSize, symSize);                // シンボルテーブルの統合をする
-                                                // bssSize, symSize も再計算する ←ここの変更ができていない
+  mergeSymTbl(bssSize, symSize);      // シンボルテーブルの統合をする
+                                      // bssSize, symSize も再計算する
+                                      //   ←ここの変更ができていない
+
   writeHdr();                                   // ヘッダを出力する
 
   /* テキストセグメントを入力して結合後出力する */
   int symBase = 0;
-  //textBase = relIdx = 0;
   textBase=0;
-  setRelIdx(0);
+
   for (int i=2; i<argc; i=i+1) {
     in = xOpen(argv[i],"rb");   //入力ファイルオープン
     readHdr();
-    int relBase = getRelIdx();  /*relIdx; */
+    int relBase = getRelIdx();  // relIdx
     readRelTbl(HDRSIZ+cTextSize+cDataSize,cTrSize,symBase,textBase,in);
     copyCode(HDRSIZ,cTextSize,textBase,relBase);  // テキストをコピー
 

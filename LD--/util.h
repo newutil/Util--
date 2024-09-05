@@ -13,13 +13,8 @@
 // FILE* in;                                  // 入力ファイル
 char *curFile;                              // 現在の入力ファイル
 
-#ifndef getB()
-#define getB()    fgetc(in)
-#endif
-
-#ifndef putB(c,out)
-#define putB(c,out)   fputc(c,out)
-#endif
+int getB();
+void putB(char c);
 void error(char *str);                    // エラーメッセージを表示して終了
 void tblError(char *str);
 void fError(char *str);                    // ファイル名付きでエラー表示

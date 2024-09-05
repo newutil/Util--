@@ -5,19 +5,12 @@
 #include "util.h"
 #include "sym.h"
 #include "str.h"
+#include "rel.h"
 
 
 
 /* 再配置表 */
-#define REL_SIZ  6000                       // 再配置表の大きさ
-
-
-struct Reloc {                              // 再配置表
-  int addr;                                 // ポインタのセグメント内 Offs
-  int symx;                                 // シンボルテーブル上の番号
-};
-
-struct Reloc relTbl[REL_SIZ];               // 再配置表の定義
+static struct Reloc relTbl[REL_SIZ];               // 再配置表の定義
 static int relIdx;                          // 表のどこまで使用したか
 
 
@@ -33,16 +26,11 @@ void setRelIdx(int num){    //使用した表の領域のセッター
   relIdx = num;
 }
 
-int getRelTbl(int index,char *str){ //再配置表のゲッター
+struct Reloc getRelTbl(int index){ //再配置表のゲッター
   if(index >= REL_SIZ || index < 0){
     error("再配置表の参照先がおかしい");    //存在しない番地
   }
-  if(strcmp(str,"addr")==0) return relTbl[index].addr;
-  else if(strcmp(str,"symx")==0) return relTbl[index].symx;
-  else{
-    error("再配置表の参照名がおかしい");
-  }
-  return -1;
+  return relTbl[index];
 }
 
 void setRelTbl(int index, int newAddr, int newSymx){  //再配置表のセッター
