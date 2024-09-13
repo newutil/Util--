@@ -32,6 +32,7 @@
 /* 名前表 */
 #define SYM_SIZ  3000                       // 名前表の大きさ (<=16kエントリ)
 
+
 struct SymTbl {                             // 名前表の型定義
   int strx;                                 // 文字列表の idx (14bitが有効)
   int type;                                 // type の意味は下に #define
@@ -45,9 +46,9 @@ struct SymTbl {                             // 名前表の型定義
 // #define SYMPTR  4                           // 表の他要素へのポインタ
 
 struct SymTbl symTbl[SYM_SIZ];              // 名前表本体の定義
-int symIdx = 0;                             // 表のどこまで使用したか
+static int symIdx = 0;                             // 表のどこまで使用したか
 //int symIdxB;
-int maxSymIdx=0;
+static int symSize = 0;                   //出力ファイルのSYMSのサイズ
 
 int getSymIdx(){                            //使用した表の領域のゲッター
   return symIdx;
@@ -59,6 +60,10 @@ if(num >= SYM_SIZ || num < 0){
     return; //念の為
   }
   symIdx=num;
+}
+
+int getSymSize(){         //
+  return symSize;
 }
 
 int getSymTbl(int index,char *str){                   //名前表のゲッター
@@ -92,15 +97,15 @@ static void setMaxSymIdxIfNeeded(int i){                      //名前表のサ�
 //   exit(1);
 // }
 
-void readSymTbl(int offs, int sSize,int textBase,int dataBase,FILE* in) {      // 名前表の読み込み
+void readSymTbl(int offs, int sSize,int textBase,int dataBase) {      // 名前表の読み込み
 
   //int symIdxB = symIdx;                         //後でマージする時のために保持する ←保持する必要がなくなったのでコメントアウト
   xSeek(offs);                              // 名前表の位置に移動
   for (int i=0; i<sSize; i=i+4) {           // ファイルの名前表について
-    int strx = getW(in);
+    int strx = getW();
     int type = (strx >> 14) & 0x3;          // 名前の型を分離
     strx = getStrIdx() + (strx & 0x3fff);        // 名前のインデクスを分離
-    int val  = getW(in);                      // 名前の値はセグメントの
+    int val  = getW();                      // 名前の値はセグメントの
     if (type==SYMTEXT)                      //   ロードアドレスにより変化する
       val = val + textBase;                 //     TEXTセグメントの場合
     else if (type==SYMDATA)                 //     DATAセグメントの場合
@@ -207,10 +212,10 @@ void mergeSymTbl(int bssSize, int symSize) {                        // 名前の
   }
 }
 
-void writeSymTbl(FILE* out) {                        // 名前表をファイルへ出力
+void writeSymTbl() {                        // 名前表をファイルへ出力
   for (int i=0; i<symIdx; i=i+1) {
-    putW((symTbl[i].type<<14) | symTbl[i].strx,out);
-    putW(symTbl[i].val,out);
+    putW((symTbl[i].type<<14) | symTbl[i].strx);
+    putW(symTbl[i].val);
   }
 }
 

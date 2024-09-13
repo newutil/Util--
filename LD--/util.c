@@ -7,12 +7,17 @@ static FILE* out;                                 // 出力ファイル
 static FILE* in;                                  // 入力ファイル
 static char *curFile = "";                        // 現在の入出力ファイル
 
+void tblError(char *str, int index, int size) {  //表がパンクした時のエラー表示
+  fprintf(stderr, "%s\t%5d/%5d\n",str,index,size);
+  exit(1);
+}
+
 void fError(char *str) {                   // ファイル名付きでエラー表示
   perror(curFile);
   error(str);
 }
 
-vvoid error(char *str) {                   // エラーメッセージを表示して終了
+void error(char *str) {                   // エラーメッセージを表示して終了
   fprintf(stderr, "%s\n", str);
   exit(1);
 }
@@ -44,7 +49,7 @@ int getW() {                                // 1ワード入力ルーチン
 
 void xOpenIn(char *fname) {                // エラーチェック付きの fopen
   curFile = fname;
-  if ((in = fopen(fname, chmod))==NULL) {   // 入力ファイルオープン
+  if ((in = fopen(fname, "rb"))==NULL) {   // 入力ファイルオープン
     fError("can't open");
   }
 }
@@ -55,9 +60,11 @@ void xOpenOut(char *fname){                 // エラーチェック付きの fo
     error("can't open");
   }
 }
-
-void tblError(char *str, int index, int size) {  //表がパンクした時のエラー表示
-  fprintf(stderr, "%s\t%5d/%5d\n",str,index,size);
-  exit(1);
-}
  
+void fcloseIn(){
+  fclose(in);
+}
+
+void fcloseOut(){
+  fclose(out);
+}

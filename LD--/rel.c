@@ -13,17 +13,12 @@
 static struct Reloc relTbl[REL_SIZ];               // 再配置表の定義
 static int relIdx;                          // 表のどこまで使用したか
 
+static int trSize = 0;
+static int drSize = 0;
+
 
 int getRelIdx(){    //使用した表の領域のゲッター
   return relIdx;
-}
-
-void setRelIdx(int num){    //使用した表の領域のセッター
-  if(num >= REL_SIZ || num < 0){
-    error("再配置表の値がおかしい");    //存在しない番地
-    return; //念の為
-  }
-  relIdx = num;
 }
 
 struct Reloc getRelTbl(int index){ //再配置表のゲッター
@@ -50,11 +45,11 @@ void setRelTbl(int index, int newAddr, int newSymx){  //再配置表のセッタ
 //   exit(1);
 // }
 
-void readRelTbl(int offs, int relSize, int symBase, int textBase,FILE* in){
+void readRelTbl(int offs, int relSize, int symBase, int textBase){
   xSeek(offs);
   for (int i=0; i<relSize; i=i+4) {         // 再配置表の1エントリは4バイト
-    int addr = getW(in) + textBase;           // 再配置アドレス
-    int symx = getW(in) & 0x3fff;             // 名前表のエントリ番号
+    int addr = getW() + textBase;           // 再配置アドレス
+    int symx = getW() & 0x3fff;             // 名前表のエントリ番号
     symx = symx + symBase / 4;              //   名前表の1エントリは4バイト
     while (getSymTbl(symx,"type")/*symTbl[symx].type*/==SYMPTR)       // PTRならポインターをたぐる
       symx = getSymTbl(symx,"val"); /*symTbl[symx].val;*/              //   PTRを使用する再配置情報はない
@@ -89,13 +84,13 @@ void packSymTbl()  {                        // 名前表の不要エントリー
   }
 }
 
-void writeRelTbl(FILE* out) {                       // 再配置表をファイルへ出力
+void writeRelTbl() {                       // 再配置表をファイルへ出力
   for (int i=0; i<relIdx; i=i+1) {
     int addr = relTbl[i].addr;
     int symx = relTbl[i].symx;
     int type = getSymTbl(symx,"type"); /*symTbl[symx].type;*/
-    putW(addr,out);
-    putW((type<<14) | symx, out);
+    putW(addr);
+    putW((type<<14) | symx);
   }
 }
 

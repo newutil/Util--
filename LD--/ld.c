@@ -76,8 +76,8 @@ int drSize;                                // 出力ファイルのDr  サイズ
 
 
 // // ファイル関係
-FILE* out;                                 // 出力ファイル
-FILE* in;                                  // 入力ファイル
+// FILE* out;                                 // 出力ファイル
+// FILE* in;                                  // 入力ファイル
 //char *curFile = "";                        // 現在の入力ファイル
 
 
@@ -93,15 +93,15 @@ void writeHdr() {                           // ヘッダ書き出しルーチン
 }
 
 void readHdr() {                            // ヘッダ読込みルーチン
-  if (getW(in)!=MAGIC)                        //   マジックナンバー
+  if (getW()!=MAGIC)                        //   マジックナンバー
     fError("扱えないファイル");
-  cTextSize=getW(in);                         //   TEXTサイズ
-  cDataSize=getW(in);                         //   DATAサイズ
-  cBssSize=getW(in);                          //   BSS サイズ
-  cSymSize=getW(in);                          //   SYMSサイズ
-  getW(in);                                   //   ENTRY
-  cTrSize=getW(in);                           //   Trサイズ
-  cDrSize=getW(in);                           //   Drサイズ
+  cTextSize=getW();                         //   TEXTサイズ
+  cDataSize=getW();                         //   DATAサイズ
+  cBssSize=getW();                          //   BSS サイズ
+  cSymSize=getW();                          //   SYMSサイズ
+  getW();                                   //   ENTRY
+  cTrSize=getW();                           //   Trサイズ
+  cDrSize=getW();                           //   Drサイズ
 }
 
 /* プログラムやデータをリロケートしながらコピーする */
@@ -109,7 +109,7 @@ void copyCode(int offs, int segSize, int segBase, int relBase) {
   xSeek(offs);
   int rel = relBase;
   for (int i=segBase; i<segBase+segSize; i=i+WORD) {
-    int w = getW(in);
+    int w = getW();
     if (rel<getRelIdx() && getRelTbl(rel).addr==i) {//ポインタのアドレスに達した
       int symx = getRelTbl(rel).symx;               // 名前表のインデクスに変換
       int type = getSymTbl(symx,"type");/*symTbl[symx].type;*/
@@ -119,7 +119,7 @@ void copyCode(int offs, int segSize, int segBase, int relBase) {
       }                                       // 絶対番地を書き込んでおく
       rel = rel + 1;                          // 次のポインタに進む
     }
-    putW(w,out);
+    putW(w);
   }
 }
 
@@ -154,20 +154,20 @@ int main(int argc, char **argv) {
     exit(0);
   }
 
-  out = xOpen(argv[1],"wb");    //出力ファイルオープン
+  xOpen(argv[1],"wb");    //出力ファイルオープン
 
   /* 入力ファイルのシンボルテーブルを読み込んで統合する */
   textBase = dataBase = bssBase = 0;
   trSize = drSize = symSize = 0;
   for (int i=2; i<argc; i=i+1) {
-    in = xOpen(argv[i],"rb"); //入力ファイルオープン  //in = の形に修正すること
+    xOpenIn(argv[i]); //入力ファイルオープン 
     int newSymBase = getSymIdx();
     int newStrBase = getStrIdx();
 
     readHdr();
     readSymTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize,
-               cSymSize,textBase,dataBase,in);
-    readStrTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize+cSymSize,in);
+               cSymSize,textBase,dataBase);
+    readStrTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize+cSymSize);
 
     mergeStrTbl(newSymBase, newStrBase);  //文字列テーブルの統合
 
@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
     drSize   = drSize   + cDrSize;
     symSize  = symSize  + cSymSize;
 
-    fclose(in);
+    fcloseIn();
   }
 
   textSize = textBase;
@@ -197,40 +197,40 @@ int main(int argc, char **argv) {
   textBase=0;
 
   for (int i=2; i<argc; i=i+1) {
-    in = xOpen(argv[i],"rb");   //入力ファイルオープン
+    xOpenIn(argv[i]);   //入力ファイルオープン
     readHdr();
     int relBase = getRelIdx();  // relIdx
-    readRelTbl(HDRSIZ+cTextSize+cDataSize,cTrSize,symBase,textBase,in);
+    readRelTbl(HDRSIZ+cTextSize+cDataSize,cTrSize,symBase,textBase);
     copyCode(HDRSIZ,cTextSize,textBase,relBase);  // テキストをコピー
 
     textBase = textBase + cTextSize;
     symBase  = symBase  + cSymSize;
-    fclose(in);
+    fcloseIn();
   }
 
   /* データセグメントを入力して結合後出力する */
   dataBase = symBase = 0;
   for (int i=2; i<argc; i=i+1) {
-    in = xOpen(argv[i],"rb");
+    xOpenIn(argv[i]);
     readHdr();
     int relBase = getRelIdx();/*relIdx;*/
-    readRelTbl(HDRSIZ+cTextSize+cDataSize+cTrSize,cDrSize,symBase,dataBase,in);
+    readRelTbl(HDRSIZ+cTextSize+cDataSize+cTrSize,cDrSize,symBase,dataBase);
     copyCode(HDRSIZ+cTextSize,cDataSize,dataBase,relBase);   // データをコピー
 
     dataBase = dataBase + cDataSize;
     symBase  = symBase  + cSymSize;
-    fclose(in);
+    fcloseIn();
   }
 
   packSymTbl();                            // 名前表から結合した残骸を削除
 
-  writeRelTbl(out);                           // 再配置表を出力する
+  writeRelTbl();                           // 再配置表を出力する
   printRelTbl();                           // 再配置表をリスト出力する
-  writeSymTbl(out);                           // 名前表を出力する
+  writeSymTbl();                           // 名前表を出力する
   printSymTbl();                           // 名前表をリスト出力する
-  writeStrTbl(out);                           // 文字列表を出力する
+  writeStrTbl();                           // 文字列表を出力する
 
-  fclose(out);
+  fcloseOut();
   //tblReport();                           // 各表の込み具合を確認する
   exit(0);
 }
