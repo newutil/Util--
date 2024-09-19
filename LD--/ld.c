@@ -73,14 +73,6 @@ int symSize;                               // 出力ファイルのSYMSサイズ
 int trSize;                                // 出力ファイルのTr  サイズ
 int drSize;                                // 出力ファイルのDr  サイズ
 
-
-
-// // ファイル関係
-// FILE* out;                                 // 出力ファイル
-// FILE* in;                                  // 入力ファイル
-//char *curFile = "";                        // 現在の入力ファイル
-
-
 void writeHdr() {                           // ヘッダ書き出しルーチン
   putW(MAGIC,out);                             //   マジックナンバー
   putW(textSize,out);                           //   TEXTサイズ
@@ -112,9 +104,9 @@ void copyCode(int offs, int segSize, int segBase, int relBase) {
     int w = getW();
     if (rel<getRelIdx() && getRelTbl(rel).addr==i) {//ポインタのアドレスに達した
       int symx = getRelTbl(rel).symx;               // 名前表のインデクスに変換
-      int type = getSymTbl(symx,"type");/*symTbl[symx].type;*/
+      int type = getSymTbl(symx,"type");
       if (type!=SYMUNDF && type!=SYMBSS) {    // UNDF と BSS は 0 のまま
-	w = getSymTbl(symx,"val");/*symTbl[symx].val;*/
+	w = getSymTbl(symx,"val");
 	if (type==SYMDATA) w=w+textSize;      // データセグメントなら(一応)
       }                                       // 絶対番地を書き込んでおく
       rel = rel + 1;                          // 次のポインタに進む
@@ -154,7 +146,7 @@ int main(int argc, char **argv) {
     exit(0);
   }
 
-  xOpen(argv[1],"wb");    //出力ファイルオープン
+  xOpenOut(argv[1]);    //出力ファイルオープン
 
   /* 入力ファイルのシンボルテーブルを読み込んで統合する */
   textBase = dataBase = bssBase = 0;
@@ -231,6 +223,5 @@ int main(int argc, char **argv) {
   writeStrTbl();                           // 文字列表を出力する
 
   fcloseOut();
-  //tblReport();                           // 各表の込み具合を確認する
   exit(0);
 }

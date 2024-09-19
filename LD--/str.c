@@ -10,7 +10,7 @@
 // #define false    0
 
 char strTbl[STR_SIZ];                       // 文字列表
-int  strIdx = 0;                            // 表のどこまで使用したか
+static int  strIdx = 0;                            // 表のどこまで使用したか
 
 
 
@@ -29,13 +29,6 @@ int strLen(int n) {                         // 文字列表中の文字列(n)の
     i = i + 1;
   return i - n + 1;                         // '\0' も数えた値を返す
 }
-
-
-/* 表がパンクしたときに使用する */    //utilに移動
-// static void strTblError() {
-//   fprintf(stderr, "  文字列表がパンクした\t%5d/%5d\n", maxStrIdx, STR_SIZ);
-//   exit(1);
-// }
 
 void readStrTbl(int offs) {                 // 文字列表の読み込み
   xSeek(offs);                              // 文字列表の位置に移動

@@ -5,30 +5,6 @@
 #include "sym.h"
 #include "str.h"
 
-
-// #define boolean int                        // boolean 型のつもり
-// #define true     1
-// #define false    0
-// #define WORD     2                         // 1ワード2バイト
-// #define MAGIC    0x0107                    // .o 形式のマジック番号
-// #define HDRSIZ   16                        // .o 形式のヘッダーサイズ
-
-// extern int strIdx;                                //表のどこまで使用したか
-// extern int textBase;                              // 現在の入力ファイルの
-// extern int dataBase;                              //   各セグメントの
-// extern int bssBase;                               //     ロードアドレス
-
-// extern int bssSize;
-// extern int symSize;
-
-
-// int strLen(int n) {                         // 文字列表中の文字列(n)の長さ
-//   int i = n;
-//   while(strTbl[i]!='\0')
-//     i = i + 1;
-//   return i - n + 1;                         // '\0' も数えた値を返す
-// }
-
 /* 名前表 */
 #define SYM_SIZ  3000                       // 名前表の大きさ (<=16kエントリ)
 
@@ -38,12 +14,6 @@ struct SymTbl {                             // 名前表の型定義
   int type;                                 // type の意味は下に #define
   int val;                                  // 名前の値
 };
-
-// #define SYMUNDF 0                           // 未定義ラベル
-// #define SYMTEXT 1                           // TEXTのラベル
-// #define SYMDATA 2                           // DATAのラベル
-// #define SYMBSS  3                           // BSSのラベル
-// #define SYMPTR  4                           // 表の他要素へのポインタ
 
 struct SymTbl symTbl[SYM_SIZ];              // 名前表本体の定義
 static int symIdx = 0;                             // 表のどこまで使用したか
@@ -66,17 +36,11 @@ int getSymSize(){         //
   return symSize;
 }
 
-int getSymTbl(int index,char *str){                   //名前表のゲッター
+struct SymTbl getSymTbl(int index){                   //名前表のゲッター
   if(index >= SYM_SIZ || index < 0){
     error("名前表の参照先がおかしい");    //存在しない番地
   }
-  if(strcmp(str,"strx")==0) return symTbl[index].strx;
-  else if(strcmp(str,"type")==0) return symTbl[index].type;
-  else if(strcmp(str,"val")==0) return symTbl[index].val;
-  else{
-    error("名前表の参照名が違う");
-  }
-  return -1;
+  return symTbl[index];
 }
 
 
@@ -86,25 +50,15 @@ void setSymTbl(int index,int newStrx,int newType,int newVal){          //名前�
   symTbl[index].val  = newVal;
 }
 
-static void setMaxSymIdxIfNeeded(int i){                      //名前表のサイズ合わせ
-  if (i > maxSymIdx) maxSymIdx = i;
-}
-
-
-// /* 表がパンクしたときに使用する */   //utilに移動
-// static void symTblError() {
-//   fprintf(stderr, "  名前表がパンクした\t%5d/%5d\n", maxSymIdx, SYM_SIZ);
-//   exit(1);
-// }
 
 void readSymTbl(int offs, int sSize,int textBase,int dataBase) {      // 名前表の読み込み
 
-  //int symIdxB = symIdx;                         //後でマージする時のために保持する ←保持する必要がなくなったのでコメントアウト
+
   xSeek(offs);                              // 名前表の位置に移動
   for (int i=0; i<sSize; i=i+4) {           // ファイルの名前表について
     int strx = getW();
     int type = (strx >> 14) & 0x3;          // 名前の型を分離
-    strx = getStrIdx() + (strx & 0x3fff);        // 名前のインデクスを分離
+    strx = getStrIdx() + (strx & 0x3fff);   // 名前のインデクスを分離
     int val  = getW();                      // 名前の値はセグメントの
     if (type==SYMTEXT)                      //   ロードアドレスにより変化する
       val = val + textBase;                 //     TEXTセグメントの場合
@@ -117,12 +71,10 @@ void readSymTbl(int offs, int sSize,int textBase,int dataBase) {      // 名前�
     symIdx = symIdx + 1;
   }
 
-  setMaxSymIdxIfNeeded(symIdx);             //名前表の大きさを更新する
-}
+ }
 
 void mergeStrTbl(int symIdxB, int strIdxB) { // 文字列表に新しく追加した綴りに
                                             //   重複があれば統合する
-  //int strIdxB = getStrIdx();
 
   for (int i=symIdxB; i<symIdx; i=i+1) {    // 追加された文字列について
     int idxI = symTbl[i].strx;
@@ -247,7 +199,19 @@ void printSymTbl() {                        // 名前表をリストへ出力
   }
 }
 
-// //文字列表の統合にあわせて、名前表の文字列を更新
-// void updateSymStrx(int curIdx, int changeIdx, int size){  
-
-// }
+void packSymTbl()  {                        // 名前表の不要エントリーを削除
+  int i = 0;
+  while (i<symIdx) {                        // 全てのエントリーについて
+    if (symTbl[i].type==SYMPTR) {           // PTRなら以下のように削除する
+      updateRelSymx(i);                     // 再配置表のインデクスを調整する
+      for (int j=i; j<symIdx-1; j=j+1) {    // 名前表を前につめる
+      	symTbl[j].strx = symTbl[j+1].strx;
+	      symTbl[j].type = symTbl[j+1].type;
+	      symTbl[j].val  = symTbl[j+1].val;
+      }
+      //setSymIdx(symIdx-1);
+      symIdx = symIdx - 1;                  // 名前表を縮小する
+    } else
+      i = i + 1;                            // PTR以外なら進める
+  }
+}

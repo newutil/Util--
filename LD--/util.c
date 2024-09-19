@@ -7,8 +7,8 @@ static FILE* out;                                 // 出力ファイル
 static FILE* in;                                  // 入力ファイル
 static char *curFile = "";                        // 現在の入出力ファイル
 
-void tblError(char *str, int index, int size) {  //表がパンクした時のエラー表示
-  fprintf(stderr, "%s\t%5d/%5d\n",str,index,size);
+void tblError(char *str, int idx, int size) {  //表がパンクした時のエラー表示
+  fprintf(stderr, "%s\t%5d/%5d\n",str,idx,size);
   exit(1);
 }
 
