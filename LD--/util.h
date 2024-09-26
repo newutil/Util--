@@ -20,8 +20,8 @@ void xOpenIn(char *fname);                 // エラーチェック付きの fop
 void xOpenOut(char *fname);                // エラーチェック付きの fopen:出力ファイル用
 void xSeekIn(int offset);                    // エラーチェック付きの SEEK ルーチン
 void xSeekOut(int offset);
-void putW(int x,FILE* out);                          // 1ワード出力ルーチン
-int getW(FILE* in);                                // 1ワード入力ルーチン
+void putW(int x);                          // 1ワード出力ルーチン
+int getW();                                // 1ワード入力ルーチン
 
 
 #endif

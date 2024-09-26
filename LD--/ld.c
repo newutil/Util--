@@ -69,9 +69,9 @@ int textSize;                              // 出力ファイルのTEXTサイズ
 // writeHdr と main の共有変数
 int dataSize;                              // 出力ファイルのDATAサイズ
 int bssSize;                               // 出力ファイルのBSS サイズ
-//int symSize;                               // 出力ファイルのSYMSサイズ
-// int trSize;                                // 出力ファイルのTr  サイズ
-// int drSize;                                // 出力ファイルのDr  サイズ
+//int symSize;                             // 出力ファイルのSYMSサイズ sym.cに移動
+// int trSize;                             // 出力ファイルのTr  サイズ rel.cに移動
+// int drSize;                             // 出力ファイルのDr  サイズ rel.cに移動
 
 void writeHdr() {                           // ヘッダ書き出しルーチン
   putW(MAGIC,out);                             //   マジックナンバー

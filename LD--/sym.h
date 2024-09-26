@@ -3,7 +3,11 @@
 
 #define SYM_SIZ  3000                       // 名前表の大きさ (<=16kエントリ)
 
-
+struct SymTbl {                             // 名前表の型定義
+  int strx;                                 // 文字列表の idx (14bitが有効)
+  int type;                                 // type の意味は下に #define
+  int val;                                  // 名前の値
+};
 
 int getSymIdx();                            //使用した表の領域のゲッター
 void setSymIdx(int num);                    //使用した表の領域のセッター
