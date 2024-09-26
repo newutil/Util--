@@ -30,8 +30,13 @@ void putB(char c) {
   fputc(c,out);
 }
 
-void xSeek(int offset) {                   // エラーチェック付きの SEEK ルーチン
+void xSeekIn(int offset) {                   // エラーチェック付きの SEEK ルーチン
   if ((offset&1)!=0 || fseek(in, (long)offset, SEEK_SET)!=0)
+    fError("file format");
+}
+
+void xSeekOut(int offset) {
+  if ((offset&1)!=0 || fseek(out, (long)offset, SEEK_SET)!=0)
     fError("file format");
 }
 

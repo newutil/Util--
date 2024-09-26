@@ -69,19 +69,19 @@ int textSize;                              // 出力ファイルのTEXTサイズ
 // writeHdr と main の共有変数
 int dataSize;                              // 出力ファイルのDATAサイズ
 int bssSize;                               // 出力ファイルのBSS サイズ
-int symSize;                               // 出力ファイルのSYMSサイズ
-int trSize;                                // 出力ファイルのTr  サイズ
-int drSize;                                // 出力ファイルのDr  サイズ
+//int symSize;                               // 出力ファイルのSYMSサイズ
+// int trSize;                                // 出力ファイルのTr  サイズ
+// int drSize;                                // 出力ファイルのDr  サイズ
 
 void writeHdr() {                           // ヘッダ書き出しルーチン
   putW(MAGIC,out);                             //   マジックナンバー
   putW(textSize,out);                           //   TEXTサイズ
   putW(dataSize,out);                           //   DATAサイズ
   putW(bssSize,out);                            //   BSS サイズ
-  putW(symSize,out);                            //   SYMSサイズ
+  putW(getSymSize(),out);                       //   SYMSサイズ
   putW(0,out);                                  //   ENTRY
-  putW(trSize,out);                             //   Trサイズ
-  putW(drSize,out);                             //   Drサイズ
+  putW(getTrSize(),out);                        //   Trサイズ
+  putW(getDrSize(),out);                        //   Drサイズ
 }
 
 void readHdr() {                            // ヘッダ読込みルーチン
@@ -98,7 +98,7 @@ void readHdr() {                            // ヘッダ読込みルーチン
 
 /* プログラムやデータをリロケートしながらコピーする */
 void copyCode(int offs, int segSize, int segBase, int relBase) {
-  xSeek(offs);
+  xSeekIn(offs);
   int rel = relBase;
   for (int i=segBase; i<segBase+segSize; i=i+WORD) {
     int w = getW();
@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
 
   /* 入力ファイルのシンボルテーブルを読み込んで統合する */
   textBase = dataBase = bssBase = 0;
-  trSize = drSize = symSize = 0;
+  trSize = drSize  = 0;
   for (int i=2; i<argc; i=i+1) {
     xOpenIn(argv[i]); //入力ファイルオープン 
     int newSymBase = getSymIdx();
@@ -167,9 +167,9 @@ int main(int argc, char **argv) {
     dataBase = dataBase + cDataSize;
     bssBase  = bssBase  + cBssSize;
 
-    trSize   = trSize   + cTrSize;
-    drSize   = drSize   + cDrSize;
-    symSize  = symSize  + cSymSize;
+    //trSize   = trSize   + cTrSize;
+    //drSize   = drSize   + cDrSize;
+    //symSize  = symSize  + cSymSize;
 
     fcloseIn();
   }
@@ -178,21 +178,22 @@ int main(int argc, char **argv) {
   dataSize = dataBase;
   bssSize  = bssBase;
 
-  mergeSymTbl(bssSize, symSize);      // シンボルテーブルの統合をする
-                                      // bssSize, symSize も再計算する
-                                      //   ←ここの変更ができていない
+  bssSize = mergeSymTbl(bssSize); 
+                             // シンボルテーブルの統合をする
+                             // bssSize, symSize も再計算する
 
-  writeHdr();                                   // ヘッダを出力する
 
+  xSeekOut(HDRSIZ);         //ヘッダ分の位置を開けておく
+  
   /* テキストセグメントを入力して結合後出力する */
   int symBase = 0;
-  textBase=0;
+  textBase = 0;
 
   for (int i=2; i<argc; i=i+1) {
     xOpenIn(argv[i]);   //入力ファイルオープン
     readHdr();
     int relBase = getRelIdx();  // relIdx
-    readRelTbl(HDRSIZ+cTextSize+cDataSize,cTrSize,symBase,textBase);
+    readTrRelTbl(HDRSIZ+cTextSize+cDataSize,cTrSize,symBase,textBase);
     copyCode(HDRSIZ,cTextSize,textBase,relBase);  // テキストをコピー
 
     textBase = textBase + cTextSize;
@@ -206,13 +207,14 @@ int main(int argc, char **argv) {
     xOpenIn(argv[i]);
     readHdr();
     int relBase = getRelIdx();/*relIdx;*/
-    readRelTbl(HDRSIZ+cTextSize+cDataSize+cTrSize,cDrSize,symBase,dataBase);
+    readDrRelTbl(HDRSIZ+cTextSize+cDataSize+cTrSize,cDrSize,symBase,dataBase);
     copyCode(HDRSIZ+cTextSize,cDataSize,dataBase,relBase);   // データをコピー
 
     dataBase = dataBase + cDataSize;
     symBase  = symBase  + cSymSize;
     fcloseIn();
   }
+
 
   packSymTbl();                            // 名前表から結合した残骸を削除
 
@@ -222,6 +224,8 @@ int main(int argc, char **argv) {
   printSymTbl();                           // 名前表をリスト出力する
   writeStrTbl();                           // 文字列表を出力する
 
+  xSeekOut(0);               // 先頭に戻る
+  writeHdr();                // ヘッダを出力する
   fcloseOut();
   exit(0);
 }

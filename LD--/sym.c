@@ -53,8 +53,9 @@ void setSymTbl(int index,int newStrx,int newType,int newVal){          //名前�
 
 void readSymTbl(int offs, int sSize,int textBase,int dataBase) {      // 名前表の読み込み
 
+  symSize = symSize + sSize;                // サイズを加算
 
-  xSeek(offs);                              // 名前表の位置に移動
+  xSeekIn(offs);                            // 名前表の位置に移動
   for (int i=0; i<sSize; i=i+4) {           // ファイルの名前表について
     int strx = getW();
     int type = (strx >> 14) & 0x3;          // 名前の型を分離
@@ -73,34 +74,7 @@ void readSymTbl(int offs, int sSize,int textBase,int dataBase) {      // 名前�
 
  }
 
-void mergeStrTbl(int symIdxB, int strIdxB) { // 文字列表に新しく追加した綴りに
-                                            //   重複があれば統合する
 
-  for (int i=symIdxB; i<symIdx; i=i+1) {    // 追加された文字列について
-    int idxI = symTbl[i].strx;
-    if (idxI < strIdxB) continue;           //  既に統合済みなら処理しない
-    for (int j=0; j<symIdxB; j=j+1) {       //  以前からある文字列と比較
-      int idxJ = symTbl[j].strx;
-      if (cmpStr(idxI, idxJ)) {             //  同じ綴が見つかったら
-	      int len=strLen(idxI);
-	      for (int k=i; k<symIdx; k=k+1) {    //  名前表の残り部分について
-	        int idxK = symTbl[k].strx;
-	        if (idxK == idxI)                 //   同じ文字列は
-	          symTbl[k].strx = idxJ;          //     以前からある方を使用する
-	        else if (idxK > idxI)             //   前につめる部分にある文字列は
-	          symTbl[k].strx = idxK - len;    //     位置調整
-	      }
-        packStrTbl(idxI,len);               //  文字列表から統合した綴り削除
-
-	   // for(int k=idxI; k<strIdx-len; k=k+1)//  文字列表から統合した綴り削除
-	   //   strTbl[k] = strTbl[k+len];        //     文字列を前につめる
-     // strIdx = strIdx - len;              //   文字列表を縮小      //str.cのpackStrTblに移動
-
-	      break;
-      }
-    }
-  }
-}
 
 void updateSymStrx(int curIdx, int changeIdx, int len){ //文字列表の統合に合わせて
                                                         //名前表のアドレスを調整する
@@ -116,7 +90,7 @@ void updateSymStrx(int curIdx, int changeIdx, int len){ //文字列表の統合�
 
 }
 
-void mergeSymTbl(int bssSize, int symSize) {                        // 名前の結合を行う
+int mergeSymTbl(int bssSize) {                        // 名前の結合を行う
   for (int i=0; i<symIdx; i=i+1) {          // 全ての名前について
     int typeI = symTbl[i].type;
     if (getStrTbl(symTbl[i].strx)=='.')        // ローカルは無視する
@@ -162,6 +136,7 @@ void mergeSymTbl(int bssSize, int symSize) {                        // 名前の
       }
     }
   }
+  return bssSize;
 }
 
 void writeSymTbl() {                        // 名前表をファイルへ出力

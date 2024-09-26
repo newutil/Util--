@@ -31,7 +31,13 @@ struct Reloc getRelTbl(int index){ //再配置表のゲッター
 }
 
 
+int getTrSize(){
+  return trSize;
+}
 
+int getDrSize(){
+  return drSize;
+}
 
 
 
@@ -43,14 +49,24 @@ struct Reloc getRelTbl(int index){ //再配置表のゲッター
 //   exit(1);
 // }
 
-void readRelTbl(int offs, int relSize, int symBase, int segBase){
-  xSeek(offs);
+void readTrRelTbl(int offs, int cTrSize, int symBase, int segBase){
+  trSize = trSize + cTrSize;
+  readRelTbl(offs,cTrSize,symBase,segBase);
+}
+
+void readDrRelTbl(int offs, int cDrSize, int symBase, int segBase){
+  drSize = drSize + cDrSize;
+  readRelTbl(offs,cDrSize,symBase,segBase);
+}
+
+static void readRelTbl(int offs, int relSize, int symBase, int segBase){
+  xSeekIn(offs);
   for (int i=0; i<relSize; i=i+4) {         // 再配置表の1エントリは4バイト
-    int addr = getW() + adrBase;           // 再配置アドレス
+    int addr = getW() + adrBase;            // 再配置アドレス
     int symx = getW() & 0x3fff;             // 名前表のエントリ番号
-    symx = symx + symBase / 4;              //   名前表の1エントリは4バイト
-    while (getSymTbl(symx,"type")/*symTbl[symx].type*/==SYMPTR)       // PTRならポインターをたぐる
-      symx = getSymTbl(symx,"val"); /*symTbl[symx].val;*/              //   PTRを使用する再配置情報はない
+    symx = symx + symBase / 4;              // 名前表の1エントリは4バイト
+    while (getSymTbl(symx).type==SYMPTR)    // PTRならポインターをたぐる
+      symx = getSymTbl(symx).val;           //   PTRを使用する再配置情報はない
     if (relIdx>=REL_SIZ) tblError("再配置表がパンクした",relIdx,REL_SIZ);
     if ((addr&1)!=0) fError("再配置表に奇数アドレスがある");
     relTbl[relIdx].addr = addr;
@@ -59,34 +75,13 @@ void readRelTbl(int offs, int relSize, int symBase, int segBase){
   }
 }
 
-// void packSymTbl()  {                        // 名前表の不要エントリーを削除
-//   int i = 0;
-//   int symIdx = getSymIdx();
-//   while (i<symIdx) {                        // 全てのエントリーについて
-//     if (getSymTbl(i,"type")/*symTbl[i].type*/==SYMPTR) {           // PTRなら以下のように削除する
-//       for (int j=0; j<relIdx; j=j+1) {      //   再配置情報全てについて
-// 	if (relTbl[j].symx>=i)              //     名前表の削除位置より後ろを
-// 	  relTbl[j].symx=relTbl[j].symx-1;  //     参照しているインデクスを調整
-//       }
-//       for (int j=i; j<symIdx-1; j=j+1) {    //   名前表を前につめる
-//     setSymTbl(j,getSymTbl(j+1,"strx"),getSymTbl(j+1,"type"),getSymTbl(j+1,"val"));
 
-// 	// symTbl[j].strx = symTbl[j+1].strx;
-// 	// symTbl[j].type = symTbl[j+1].type;
-// 	// symTbl[j].val  = symTbl[j+1].val;
-//       }
-//       setSymIdx(symIdx-1);
-//       //symIdx = symIdx - 1;                  //   名前表を縮小する
-//     } else
-//       i = i + 1;                            // PTR以外なら進める
-//   }
-// }
 
 void writeRelTbl() {                       // 再配置表をファイルへ出力
   for (int i=0; i<relIdx; i=i+1) {
     int addr = relTbl[i].addr;
     int symx = relTbl[i].symx;
-    int type = getSymTbl(symx,"type"); /*symTbl[symx].type;*/
+    int type = getSymTbl(symx).type; 
     putW(addr);
     putW((type<<14) | symx);
   }
@@ -98,11 +93,11 @@ void printRelTbl() {                       // 再配置表をリスト出力
   for (int i=0; i<relIdx; i=i+1) {
     int addr = relTbl[i].addr;
     int symx = relTbl[i].symx;
-    int type = getSymTbl(symx,"type");/*symTbl[symx].type;*/
+    int type = getSymTbl(symx).type;
     
     printf("%04x\t",addr);
     printSymName(symx);
-    //putStr(stdout,getSymTbl(symx,"strx")/*symTbl[symx].strx*/); //シンボルテーブルの内容を印刷する関数を用意する
+    putStr(stdout,getSymTbl(symx).strx); //シンボルテーブルの内容を印刷する関数を用意する
     printf("\t");
     printSymType(type);
     printf("\t%d\n", symx);

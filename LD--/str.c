@@ -31,7 +31,7 @@ int strLen(int n) {                         // 文字列表中の文字列(n)の
 }
 
 void readStrTbl(int offs) {                 // 文字列表の読み込み
-  xSeek(offs);                              // 文字列表の位置に移動
+  xSeekIn(offs);                            // 文字列表の位置に移動
   int c;
   while ((c=getB())!=EOF) {                 // EOFになるまで読み込む
     if (strIdx>=STR_SIZ) tblError("文字列表がパンクした",maxStrIdx, STR_SIZ);
@@ -71,8 +71,20 @@ void packStrTbl(int idxI,int len){   //  文字列表から統合した綴りを
 	strIdx = strIdx - len;              //   文字列表を縮小
 }
 
-void mergeStrTbl(int strIdxB) { // 文字列表に新しく追加した綴りに
+void mergeStrTbl(int symIdxB, int strIdxB) { // 文字列表に新しく追加した綴りに
                                             //   重複があれば統合する
-  
-  
+
+  for (int i=symIdxB; i<symIdx; i=i+1) {    // 追加された文字列について
+    int idxI = symTbl[i].strx;
+    if (idxI < strIdxB) continue;           //  既に統合済みなら処理しない
+    for (int j=0; j<symIdxB; j=j+1) {       //  以前からある文字列と比較
+      int idxJ = symTbl[j].strx;
+      if (cmpStr(idxI, idxJ)) {             //  同じ綴が見つかったら
+	      int len=strLen(idxI);
+        updateSymStrx(idxJ,idxI,len);       //  名前表のアドレスを調整して
+        packStrTbl(idxI,len);               //  文字列表から統合した綴り削除
+	      break;
+      }
+    }
+  }
 }
