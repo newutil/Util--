@@ -1,5 +1,5 @@
 int a;
-public b = 10;
+public int b = 10;
 int c;
 
 public void main(){

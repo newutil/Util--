@@ -1,7 +1,8 @@
 int a =10;
-public b;
-public c = 20;
+public int b;
+public int c = 20;
 
 int f(){
     a=20;
+    return a;
 }
