@@ -40,29 +40,10 @@ int getDrSize(){
 }
 
 
-
-
-
-/* 表がパンクしたときに使用する */  //utilに移動
-// static void relTblError() {
-//   fprintf(stderr, "  再配置表がパンクした\t%5d/%5d\n", relIdx, REL_SIZ);
-//   exit(1);
-// }
-
-void readTrRelTbl(int offs, int cTrSize, int symBase, int segBase){
-  trSize = trSize + cTrSize;
-  readRelTbl(offs,cTrSize,symBase,segBase);
-}
-
-void readDrRelTbl(int offs, int cDrSize, int symBase, int segBase){
-  drSize = drSize + cDrSize;
-  readRelTbl(offs,cDrSize,symBase,segBase);
-}
-
 static void readRelTbl(int offs, int relSize, int symBase, int segBase){
   xSeekIn(offs);
   for (int i=0; i<relSize; i=i+4) {         // 再配置表の1エントリは4バイト
-    int addr = getW() + adrBase;            // 再配置アドレス
+    int addr = getW() + segBase;            // 再配置アドレス
     int symx = getW() & 0x3fff;             // 名前表のエントリ番号
     symx = symx + symBase / 4;              // 名前表の1エントリは4バイト
     while (getSymTbl(symx).type==SYMPTR)    // PTRならポインターをたぐる
@@ -74,6 +55,17 @@ static void readRelTbl(int offs, int relSize, int symBase, int segBase){
     relIdx = relIdx + 1;
   }
 }
+
+void readTrRelTbl(int offs, int cTrSize, int symBase, int segBase){
+  trSize = trSize + cTrSize;
+  readRelTbl(offs,cTrSize,symBase,segBase);
+}
+
+void readDrRelTbl(int offs, int cDrSize, int symBase, int segBase){
+  drSize = drSize + cDrSize;
+  readRelTbl(offs,cDrSize,symBase,segBase);
+}
+
 
 
 
@@ -106,8 +98,8 @@ void printRelTbl() {                       // 再配置表をリスト出力
 }
 
 void updateRelSymx(int ptrIdx){
-  for (int j=0; j<relIdx; j=j+1) {      //   再配置情報全てについて
-	      if (relTbl[j].symx>=i)              //     名前表の削除位置より後ろを
-	        relTbl[j].symx=relTbl[j].symx-1;  //     参照しているインデクスを調整
+  for (int j=0; j<relIdx; j=j+1) {          //   再配置情報全てについて
+	      if (relTbl[j].symx>=ptrIdx)         //   名前表の削除位置より後ろを
+	        relTbl[j].symx=relTbl[j].symx-1;  //   参照しているインデクスを調整
       }
 }

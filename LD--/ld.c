@@ -74,14 +74,14 @@ int bssSize;                               // 出力ファイルのBSS サイズ
 // int drSize;                             // 出力ファイルのDr  サイズ rel.cに移動
 
 void writeHdr() {                           // ヘッダ書き出しルーチン
-  putW(MAGIC,out);                             //   マジックナンバー
-  putW(textSize,out);                           //   TEXTサイズ
-  putW(dataSize,out);                           //   DATAサイズ
-  putW(bssSize,out);                            //   BSS サイズ
-  putW(getSymSize(),out);                       //   SYMSサイズ
-  putW(0,out);                                  //   ENTRY
-  putW(getTrSize(),out);                        //   Trサイズ
-  putW(getDrSize(),out);                        //   Drサイズ
+  putW(MAGIC);                             //   マジックナンバー
+  putW(textSize);                           //   TEXTサイズ
+  putW(dataSize);                           //   DATAサイズ
+  putW(bssSize);                            //   BSS サイズ
+  putW(getSymSize());                       //   SYMSサイズ
+  putW(0);                                  //   ENTRY
+  putW(getTrSize());                        //   Trサイズ
+  putW(getDrSize());                        //   Drサイズ
 }
 
 void readHdr() {                            // ヘッダ読込みルーチン
@@ -104,9 +104,9 @@ void copyCode(int offs, int segSize, int segBase, int relBase) {
     int w = getW();
     if (rel<getRelIdx() && getRelTbl(rel).addr==i) {//ポインタのアドレスに達した
       int symx = getRelTbl(rel).symx;               // 名前表のインデクスに変換
-      int type = getSymTbl(symx,"type");
+      int type = getSymTbl(symx).type;
       if (type!=SYMUNDF && type!=SYMBSS) {    // UNDF と BSS は 0 のまま
-	w = getSymTbl(symx,"val");
+	w = getSymTbl(symx).val;
 	if (type==SYMDATA) w=w+textSize;      // データセグメントなら(一応)
       }                                       // 絶対番地を書き込んでおく
       rel = rel + 1;                          // 次のポインタに進む
@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
 
   /* 入力ファイルのシンボルテーブルを読み込んで統合する */
   textBase = dataBase = bssBase = 0;
-  trSize = drSize  = 0;
+  //trSize = drSize  = 0;
   for (int i=2; i<argc; i=i+1) {
     xOpenIn(argv[i]); //入力ファイルオープン 
     int newSymBase = getSymIdx();

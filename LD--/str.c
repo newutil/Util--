@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "util.h"
 #include "str.h"
+#include "sym.h"
 
 #define STR_SIZ  16000                      // 文字列表の大きさ(<=16kB)
 
@@ -9,7 +10,7 @@
 // #define true     1
 // #define false    0
 
-char strTbl[STR_SIZ];                       // 文字列表
+static char strTbl[STR_SIZ];                       // 文字列表
 static int  strIdx = 0;                            // 表のどこまで使用したか
 
 
@@ -19,8 +20,10 @@ int getStrIdx(){
 }
 
 
-char getStrTbl(int i){                      //文字列表の値を返す
-  return strTbl[i];
+boolean isStrLocal(int i){                      //文字列表の値がローカルなら正を返す
+  if(strTbl[i] == '.')
+    return true;
+  return false;
 }
 
 int strLen(int n) {                         // 文字列表中の文字列(n)の長さ
@@ -34,7 +37,7 @@ void readStrTbl(int offs) {                 // 文字列表の読み込み
   xSeekIn(offs);                            // 文字列表の位置に移動
   int c;
   while ((c=getB())!=EOF) {                 // EOFになるまで読み込む
-    if (strIdx>=STR_SIZ) tblError("文字列表がパンクした",maxStrIdx, STR_SIZ);
+    if (strIdx>=STR_SIZ) tblError("文字列表がパンクした", strIdx, STR_SIZ);
     strTbl[strIdx] = c;
     strIdx = strIdx + 1;
   }
@@ -71,20 +74,46 @@ void packStrTbl(int idxI,int len){   //  文字列表から統合した綴りを
 	strIdx = strIdx - len;              //   文字列表を縮小
 }
 
-void mergeStrTbl(int symIdxB, int strIdxB) { // 文字列表に新しく追加した綴りに
-                                            //   重複があれば統合する
 
-  for (int i=symIdxB; i<symIdx; i=i+1) {    // 追加された文字列について
-    int idxI = symTbl[i].strx;
-    if (idxI < strIdxB) continue;           //  既に統合済みなら処理しない
-    for (int j=0; j<symIdxB; j=j+1) {       //  以前からある文字列と比較
-      int idxJ = symTbl[j].strx;
-      if (cmpStr(idxI, idxJ)) {             //  同じ綴が見つかったら
-	      int len=strLen(idxI);
-        updateSymStrx(idxJ,idxI,len);       //  名前表のアドレスを調整して
-        packStrTbl(idxI,len);               //  文字列表から統合した綴り削除
-	      break;
-      }
+
+static int nextStrx(int idx){        //　次の文字までインデクスを進める
+  int nextIdx = idx + strLen(idx);
+  return  nextIdx;
+
+}
+
+void mergeStrTbl(int symIdxB, int strIdxB) {  // 文字列表に新しく追加した綴りに
+                                              // 重複があれば統合する
+                                          
+  int idxI = strIdxB;     // 新しい文字列用                 
+  int idxJ = 0;           // 元からある文字列用
+
+  while(idxI < strIdx){                       // 追加された文字列について
+    idxJ = 0;
+    while(idxJ < strIdxB){                    // 以前からある文字列と比較
+      if(cmpStr(idxI, idxJ)){                 // 同じ綴が見つかったら
+        int len = strLen(idxI);
+        updateSymStrx(idxJ, idxI, len);       // 名前表のアドレスを調整して
+        packStrTbl(idxI,len);                 // 文字列表から統合した綴りを削除
+        break;
+      }                                       // 違う文字列の場合は
+      idxJ = idxJ + strLen(idxJ);             // 次の文字列を準備
     }
+    idxI = idxI + strLen(idxI);               // 追加された文字列を全てチェック      
   }
+
+  // for (int i=symIdxB; i<symIdx; i=i+1) {    // 追加された文字列について
+
+  //   // int idxI = getSymTbl(i).strx;
+  //   if (idxI < strIdxB) continue;           //  既に統合済みなら処理しない
+  //   for (int j=0; j<symIdxB; j=j+1) {       //  以前からある文字列と比較
+  //     int idxJ = symTbl[j].strx;
+  //     if (cmpStr(idxI, idxJ)) {             //  同じ綴が見つかったら
+	//       int len=strLen(idxI);
+  //       updateSymStrx(idxJ,idxI,len);       //  名前表のアドレスを調整して
+  //       packStrTbl(idxI,len);               //  文字列表から統合した綴り削除
+	//       break;
+  //     }
+  //   }
+  // }
 }

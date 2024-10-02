@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "util.h"
-#include "sym.h"
 #include "str.h"
+#include "sym.h"
+#include "rel.h"
 
 /* 名前表 */
 #define SYM_SIZ  3000                       // 名前表の大きさ (<=16kエントリ)
@@ -25,7 +26,7 @@ if(num >= SYM_SIZ || num < 0){
   symIdx=num;
 }
 
-int getSymSize(){         //
+int getSymSize(){         //symSizeを返す
   return symSize;
 }
 
@@ -58,7 +59,7 @@ void readSymTbl(int offs, int sSize,int textBase,int dataBase) {      // 名前�
       val = val + textBase;                 //     TEXTセグメントの場合
     else if (type==SYMDATA)                 //     DATAセグメントの場合
       val = val + dataBase;                 //     BSSセグメントの場合はサイズ
-    if (symIdx>=SYM_SIZ) tblError("名前表がパンクした", maxSymIdx, SYM_SIZ);
+    if (symIdx>=SYM_SIZ) tblError("名前表がパンクした", symIdx, SYM_SIZ);
     symTbl[symIdx].strx = strx;             // 名前の綴
     symTbl[symIdx].type = type;             // 名前の型
     symTbl[symIdx].val  = val;              // 名前の値
@@ -75,18 +76,17 @@ void updateSymStrx(int curIdx, int changeIdx, int len){ //文字列表の統合�
     int idxI = symTbl[i].strx;
     if(idxI == changeIdx) {                 //統合した文字列を指しているならば
       symTbl[i].strx = curIdx;              //以前からある方に合わせる
-    }
-    else if(idxI >= changeIdx) {            //前に詰めた部分にあるものは
-      symTbl[i].strx -= len;                //位置調整 
+    } else if(idxI >= changeIdx) {          //前に詰めた部分にあるものは
+      symTbl[i].strx = idxI - len;          //位置調整 
     }
   }
 
 }
 
-int mergeSymTbl(int bssSize) {                        // 名前の結合を行う
-  for (int i=0; i<symIdx; i=i+1) {          // 全ての名前について
+int mergeSymTbl(int bssSize) {             // 名前の結合を行う
+  for (int i=0; i<symIdx; i=i+1) {         // 全ての名前について
     int typeI = symTbl[i].type;
-    if (getStrTbl(symTbl[i].strx)=='.')        // ローカルは無視する
+    if (isStrLocal(symTbl[i].strx))        // ローカルは無視する
       continue;
     for (int j=0; j<i; j=j+1) {
       int typeJ = symTbl[j].type;           // PTR以外で同じ綴りを探す
@@ -104,15 +104,15 @@ int mergeSymTbl(int bssSize) {                        // 名前の結合を行�
           bssSize = bssSize - symTbl[j].val;
           symTbl[j].type = SYMPTR;
           symTbl[j].val  = i;
-        } else if(typeJ==SYMDATA  && typeI==SYMBSS) { // DATAとBSSもDATAに統合
+        } else if(typeJ==SYMDATA  && typeI==SYMBSS) {  // DATAとBSSもDATAに統合
           bssSize = bssSize - symTbl[i].val;
           symTbl[i].type = SYMPTR;
           symTbl[i].val  = j;
-        } else if (typeJ==SYMBSS && typeI==SYMBSS) {  // BSS同士は
+        } else if (typeJ==SYMBSS && typeI==SYMBSS) {   // BSS同士は
           int valJ = symTbl[j].val;
           int valI = symTbl[i].val;
-          if (valJ<valI) {                            //   サイズの大きい方に
-            bssSize = bssSize - valJ;                 //      統合する
+          if (valJ<valI) {                             //   サイズの大きい方に
+            bssSize = bssSize - valJ;                  //      統合する
             symTbl[j].type = SYMPTR;
             symTbl[j].val  = i;
           } else {
@@ -124,7 +124,7 @@ int mergeSymTbl(int bssSize) {                        // 名前の結合を行�
           putStr(stderr,symTbl[i].strx);
           error(":ラベルの二重定義");
         }
-        symSize = symSize - 4;                        // 1項目4バイト減少
+        symSize = symSize - 4;                         // 1項目4バイト減少
         break;
       }
     }
@@ -147,7 +147,7 @@ void printSymType(int type) {               // 名前の種類を印刷
   else error("printSymType:バグ");
 }
 
-void printSymName(int symx){  //名前表の中から一つの名前の文字列を印刷
+void printSymName(int symx){                // 名前表の中から一つの名前の文字列を印刷
   putStr(stdout,symTbl[symx].strx);
 }
 
@@ -177,7 +177,6 @@ void packSymTbl()  {                        // 名前表の不要エントリー
 	      symTbl[j].type = symTbl[j+1].type;
 	      symTbl[j].val  = symTbl[j+1].val;
       }
-      //setSymIdx(symIdx-1);
       symIdx = symIdx - 1;                  // 名前表を縮小する
     } else
       i = i + 1;                            // PTR以外なら進める
