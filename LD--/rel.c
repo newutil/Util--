@@ -66,6 +66,12 @@ void readDrRelTbl(int offs, int cDrSize, int symBase, int segBase){
   readRelTbl(offs,cDrSize,symBase,segBase);
 }
 
+void updateRelSymx(int ptrIdx){
+  for (int j=0; j<relIdx; j=j+1) {          //   再配置情報全てについて
+	      if (relTbl[j].symx>=ptrIdx)         //   名前表の削除位置より後ろを
+	        relTbl[j].symx=relTbl[j].symx-1;  //   参照しているインデクスを調整
+      }
+}
 
 
 
@@ -89,17 +95,9 @@ void printRelTbl() {                       // 再配置表をリスト出力
     
     printf("%04x\t",addr);
     printSymName(symx);
-    putStr(stdout,getSymTbl(symx).strx); //シンボルテーブルの内容を印刷する関数を用意する
     printf("\t");
     printSymType(type);
     printf("\t%d\n", symx);
   }
   printf("\n");
-}
-
-void updateRelSymx(int ptrIdx){
-  for (int j=0; j<relIdx; j=j+1) {          //   再配置情報全てについて
-	      if (relTbl[j].symx>=ptrIdx)         //   名前表の削除位置より後ろを
-	        relTbl[j].symx=relTbl[j].symx-1;  //   参照しているインデクスを調整
-      }
 }

@@ -11,20 +11,12 @@
 
 struct SymTbl symTbl[SYM_SIZ];              // 名前表本体の定義
 static int symIdx = 0;                             // 表のどこまで使用したか
-//int symIdxB;
 static int symSize = 0;                   //出力ファイルのSYMSのサイズ
 
-int getSymIdx(){                            //使用した表の領域のゲッター
-  return symIdx;
-}
 
-void setSymIdx(int num){                    //使用した表の領域のセッター
-if(num >= SYM_SIZ || num < 0){
-    error("名前表の値がおかしい");    //存在しない番地
-    return; //念の為
-  }
-  symIdx=num;
-}
+// int getSymIdx(){                            //使用した表の領域のゲッター
+//   return symIdx;
+// }
 
 int getSymSize(){         //symSizeを返す
   return symSize;
@@ -35,13 +27,6 @@ struct SymTbl getSymTbl(int index){                   //名前表のゲッター
     error("名前表の参照先がおかしい");    //存在しない番地
   }
   return symTbl[index];
-}
-
-
-void setSymTbl(int index,int newStrx,int newType,int newVal){          //名前表のセッター
-  symTbl[index].strx = newStrx;
-  symTbl[index].type = newType;
-  symTbl[index].val  = newVal;
 }
 
 
@@ -65,23 +50,7 @@ void readSymTbl(int offs, int sSize,int textBase,int dataBase) {      // 名前�
     symTbl[symIdx].val  = val;              // 名前の値
     symIdx = symIdx + 1;
   }
-
  }
-
-
-
-void updateSymStrx(int curIdx, int changeIdx, int len){ //文字列表の統合に合わせて
-                                                        //名前表のアドレスを調整する
-  for(int i=0; i<symIdx; i=i+1) {
-    int idxI = symTbl[i].strx;
-    if(idxI == changeIdx) {                 //統合した文字列を指しているならば
-      symTbl[i].strx = curIdx;              //以前からある方に合わせる
-    } else if(idxI >= changeIdx) {          //前に詰めた部分にあるものは
-      symTbl[i].strx = idxI - len;          //位置調整 
-    }
-  }
-
-}
 
 int mergeSymTbl(int bssSize) {             // 名前の結合を行う
   for (int i=0; i<symIdx; i=i+1) {         // 全ての名前について
@@ -132,23 +101,24 @@ int mergeSymTbl(int bssSize) {             // 名前の結合を行う
   return bssSize;
 }
 
+void updateSymStrx(int curIdx, int changeIdx, int len){ //文字列表の統合に合わせて
+                                                        //名前表のアドレスを調整する
+  for(int i=0; i<symIdx; i=i+1) {
+    int idxI = symTbl[i].strx;
+    if(idxI == changeIdx) {                 //統合した文字列を指しているならば
+      symTbl[i].strx = curIdx;              //以前からある方に合わせる
+    } else if(idxI >= changeIdx) {          //前に詰めた部分にあるものは
+      symTbl[i].strx = idxI - len;          //位置調整 
+    }
+  }
+
+}
+
 void writeSymTbl() {                        // 名前表をファイルへ出力
   for (int i=0; i<symIdx; i=i+1) {
     putW((symTbl[i].type<<14) | symTbl[i].strx);
     putW(symTbl[i].val);
   }
-}
-
-void printSymType(int type) {               // 名前の種類を印刷
-  if (type==SYMTEXT) printf("TEXT");        //   = 1
-  else if (type==SYMDATA) printf("DATA");   //   = 2
-  else if (type==SYMBSS)  printf("BSS");    //   = 3
-  else if (type==SYMUNDF) printf("UNDF");   //   = 0
-  else error("printSymType:バグ");
-}
-
-void printSymName(int symx){                // 名前表の中から一つの名前の文字列を印刷
-  putStr(stdout,symTbl[symx].strx);
 }
 
 void printSymTbl() {                        // 名前表をリストへ出力
@@ -167,7 +137,19 @@ void printSymTbl() {                        // 名前表をリストへ出力
   }
 }
 
-void packSymTbl()  {                        // 名前表の不要エントリーを削除
+void printSymType(int type) {               // 名前の種類を印刷
+  if (type==SYMTEXT) printf("TEXT");        //   = 1
+  else if (type==SYMDATA) printf("DATA");   //   = 2
+  else if (type==SYMBSS)  printf("BSS");    //   = 3
+  else if (type==SYMUNDF) printf("UNDF");   //   = 0
+  else error("printSymType:バグ");
+}
+
+void printSymName(int symx){                // 名前表の中から一つの名前の文字列を印刷
+  putStr(stdout,symTbl[symx].strx);
+}
+
+void packSymTbl() {                         // 名前表の不要エントリーを削除
   int i = 0;
   while (i<symIdx) {                        // 全てのエントリーについて
     if (symTbl[i].type==SYMPTR) {           // PTRなら以下のように削除する

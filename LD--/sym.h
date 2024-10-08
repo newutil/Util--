@@ -9,16 +9,15 @@ struct SymTbl {                             // 名前表の型定義
   int val;                                  // 名前の値
 };
 
-int getSymIdx();                            // 使用した表の領域のゲッター
-void setSymIdx(int num);                    // 使用した表の領域のセッター
+
 struct SymTbl getSymTbl(int index);         // 名前表のゲッター
 int getSymSize();
-void setSymTbl(int index,int newStrx,int newType,int newVal);       // 名前表のセッター
 void readSymTbl(int offs, int sSize, int textBase, int dataBase);   // 名前表の読み込み
-void updateSymStrx(int curIdx, int changeIdx, int len);
 int mergeSymTbl(int bssSize);               // 名前を統合
+void updateSymStrx(int curIdx, int changeIdx, int len);
 void writeSymTbl();                         // 名前表をファイルへ出力
 void printSymType(int type);                // 名前表の種類を印刷
 void printSymName(int symx);
 void printSymTbl();                         // 名前表をリストへ出力
+void packSymTbl();
 #endif

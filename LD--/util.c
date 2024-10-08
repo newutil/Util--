@@ -15,9 +15,8 @@ void putB(char c) {
   fputc(c,out);
 }
 
-
-void tblError(char *str, int idx, int size) {  //表がパンクした時のエラー表示
-  fprintf(stderr, "%s\t%5d/%5d\n",str,idx,size);
+void error(char *str) {                   // エラーメッセージを表示して終了
+  fprintf(stderr, "%s\n", str);
   exit(1);
 }
 
@@ -26,11 +25,10 @@ void fError(char *str) {                   // ファイル名付きでエラー�
   error(str);
 }
 
-void error(char *str) {                   // エラーメッセージを表示して終了
-  fprintf(stderr, "%s\n", str);
+void tblError(char *str, int idx, int size) {  //表がパンクした時のエラー表示
+  fprintf(stderr, "%s\t%5d/%5d\n",str,idx,size);
   exit(1);
 }
-
 
 void xOpenIn(char *fname) {                // エラーチェック付きの fopen
   curFile = fname;

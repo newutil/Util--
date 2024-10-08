@@ -47,10 +47,6 @@
 #include "sym.h"
 #include "str.h"
 
-
-// #define boolean int                        // boolean 型のつもり
-// #define true     1
-// #define false    0
 #define WORD     2                         // 1ワード2バイト
 #define MAGIC    0x0107                    // .o 形式のマジック番号
 #define HDRSIZ   16                        // .o 形式のヘッダーサイズ
@@ -65,13 +61,9 @@ int cDrSize;                               // 現在の入力ファイルのDr  
 
 // writeHdr と copyCode と main の共有変数
 int textSize;                              // 出力ファイルのTEXTサイズ
-
 // writeHdr と main の共有変数
 int dataSize;                              // 出力ファイルのDATAサイズ
 int bssSize;                               // 出力ファイルのBSS サイズ
-//int symSize;                             // 出力ファイルのSYMSサイズ sym.cに移動
-// int trSize;                             // 出力ファイルのTr  サイズ rel.cに移動
-// int drSize;                             // 出力ファイルのDr  サイズ rel.cに移動
 
 void writeHdr() {                           // ヘッダ書き出しルーチン
   putW(MAGIC);                             //   マジックナンバー
@@ -146,6 +138,7 @@ int main(int argc, char **argv) {
     exit(0);
   }
 
+
   xOpenOut(argv[1]);    //出力ファイルオープン
 
   /* 入力ファイルのシンボルテーブルを読み込んで統合する */
@@ -153,7 +146,7 @@ int main(int argc, char **argv) {
   //trSize = drSize  = 0;
   for (int i=2; i<argc; i=i+1) {
     xOpenIn(argv[i]); //入力ファイルオープン 
-    int newSymBase = getSymIdx();
+    // int newSymBase = getSymIdx();
     int newStrBase = getStrIdx();
 
     readHdr();
@@ -161,7 +154,7 @@ int main(int argc, char **argv) {
                cSymSize,textBase,dataBase);
     readStrTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize+cSymSize);
 
-    mergeStrTbl(newSymBase, newStrBase);  //文字列テーブルの統合
+    mergeStrTbl(newStrBase);  //文字列テーブルの統合
 
     textBase = textBase + cTextSize;
     dataBase = dataBase + cDataSize;
