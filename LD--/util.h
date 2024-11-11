@@ -23,6 +23,7 @@ void xSeekIn(int offset);                       // エラーチェック付き�
 void xSeekOut(int offset);
 void putW(int x);                               // 1ワード出力ルーチン
 int getW();                                     // 1ワード入力ルーチン
+boolean nextFile();
 
 
 #endif

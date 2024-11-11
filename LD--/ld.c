@@ -138,31 +138,33 @@ int main(int argc, char **argv) {
     exit(0);
   }
 
-
   xOpenOut(argv[1]);    //出力ファイルオープン
 
   /* 入力ファイルのシンボルテーブルを読み込んで統合する */
+
+  printf("\n***シンボルテーブルの読み込み、統合***\n\n"); //デバッグ用
   textBase = dataBase = bssBase = 0;
   //trSize = drSize  = 0;
   for (int i=2; i<argc; i=i+1) {
     xOpenIn(argv[i]); //入力ファイルオープン 
-    // int newSymBase = getSymIdx();
-    int newStrBase = getStrIdx();
+    do{
+      int newStrBase = getStrIdx();
+      readHdr();
+      readSymTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize,
+                 cSymSize,textBase,dataBase);
 
-    readHdr();
-    readSymTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize,
-               cSymSize,textBase,dataBase);
-    readStrTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize+cSymSize);
+      readStrTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize+cSymSize);
 
-    mergeStrTbl(newStrBase);  //文字列テーブルの統合
+      mergeStrTbl(newStrBase);  //文字列テーブルの統合
 
-    textBase = textBase + cTextSize;
-    dataBase = dataBase + cDataSize;
-    bssBase  = bssBase  + cBssSize;
+      textBase = textBase + cTextSize;
+      dataBase = dataBase + cDataSize;
+      bssBase  = bssBase  + cBssSize;
 
-    //trSize   = trSize   + cTrSize;
-    //drSize   = drSize   + cDrSize;
-    //symSize  = symSize  + cSymSize;
+      printf("\n*-*-*-*-*\n\n");
+      printf("debug: ld→Execting nextFile().\n"); //デバッグ用
+
+    }while(nextFile()); //アーカイブファイルの場合は繰り返し処理
 
     fcloseIn();
   }
@@ -178,36 +180,50 @@ int main(int argc, char **argv) {
 
   xSeekOut(HDRSIZ);         //ヘッダ分の位置を開けておく
   
+
+  printf("\n***テキストセグメントの読み込み、統合***\n\n"); //デバッグ用
   /* テキストセグメントを入力して結合後出力する */
   int symBase = 0;
   textBase = 0;
-
   for (int i=2; i<argc; i=i+1) {
     xOpenIn(argv[i]);   //入力ファイルオープン
-    readHdr();
-    int relBase = getRelIdx();  // relIdx
-    readTrRelTbl(HDRSIZ+cTextSize+cDataSize,cTrSize,symBase,textBase);
-    copyCode(HDRSIZ,cTextSize,textBase,relBase);  // テキストをコピー
+    do{
+      readHdr();
+      int relBase = getRelIdx();  // relIdx
+      readTrRelTbl(HDRSIZ+cTextSize+cDataSize,cTrSize,symBase,textBase);
+      copyCode(HDRSIZ,cTextSize,textBase,relBase);  // テキストをコピー
 
-    textBase = textBase + cTextSize;
-    symBase  = symBase  + cSymSize;
+      textBase = textBase + cTextSize;
+      symBase  = symBase  + cSymSize;
+    
+    printf("\n*-*-*-*-*\n\n");
+      printf("debug: ld→Execting nextFile().\n"); //デバッグ用
+
+    }while(nextFile()); //アーカイブファイルの場合は繰り返し処理
     fcloseIn();
   }
 
+  
+  printf("\n***データセグメントの読み込み、統合***\n\n"); //デバッグ用
   /* データセグメントを入力して結合後出力する */
   dataBase = symBase = 0;
   for (int i=2; i<argc; i=i+1) {
     xOpenIn(argv[i]);
-    readHdr();
-    int relBase = getRelIdx();/*relIdx;*/
-    readDrRelTbl(HDRSIZ+cTextSize+cDataSize+cTrSize,cDrSize,symBase,dataBase);
-    copyCode(HDRSIZ+cTextSize,cDataSize,dataBase,relBase);   // データをコピー
+    do{
+      readHdr();
+      int relBase = getRelIdx();/*relIdx;*/
+      readDrRelTbl(HDRSIZ+cTextSize+cDataSize+cTrSize,cDrSize,symBase,dataBase);
+      copyCode(HDRSIZ+cTextSize,cDataSize,dataBase,relBase);   // データをコピー
 
-    dataBase = dataBase + cDataSize;
-    symBase  = symBase  + cSymSize;
+      dataBase = dataBase + cDataSize;
+      symBase  = symBase  + cSymSize;
+
+      printf("\n*-*-*-*-*\n\n");
+      printf("debug: ld→Execting nextFile().\n"); //デバッグ用
+
+    }while(nextFile()); //アーカイブファイルの場合は繰り返し処理
     fcloseIn();
   }
-
 
   packSymTbl();                            // 名前表から結合した残骸を削除
 
