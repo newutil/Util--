@@ -92,12 +92,12 @@ void xOpenIn(char *fname) {                // エラーチェック付きの fop
     printf("debug: This file \"%s\" is archive file.\n",curFile);  //デバッグ用
 
     int i=0;
-    int *c;
+    int c;
     int aLen = strlen(arcCheck);
     while(i<aLen){
-      c[i] = getB();
-      printf("%c",(char)c[i]);  //デバッグ用
-      if(c[i] != arcCheck[i])             //想定しているファイル形式でなければ
+      c = getB();
+      printf("%c",(char)c);  //デバッグ用
+      if(c != arcCheck[i])             //想定しているファイル形式でなければ
         fError("アーカイブファイルではない.aファイル\n");   //エラー終了
       i = i + 1;
     }; 
@@ -129,13 +129,11 @@ void fcloseOut(){                           //入力ファイルクローズ
 
 void xSeekIn(int offset) {  // 入力ファイル用エラーチェック付きの SEEK ルーチン
   
-  if(isArchive)                   //アーカイブファイルの場合
-    offset = offset + cFileHead;  //ファイルの内容の先頭からSEEKする
-  else if ( (offset&1)!=0){       //アーカイブファイルではない場合
-    fError("file format");        //奇数アドレスへfSeekはエラーを返す
-  }
+  int realOffset = offset;
+  if(isArchive)                           //アーカイブファイルの場合
+    realOffset = realOffset + cFileHead;  //ファイルの内容の先頭からSEEKする
   
-  if ( fseek(in, (long)offset, SEEK_SET)!=0)
+  if ( (offset&1)!=0 || fseek(in, (long)realOffset, SEEK_SET)!=0)
     fError("file format");
 }
 
@@ -158,23 +156,25 @@ int getW() {                                // 1ワード入力ルーチン
 
 boolean nextFile(){      //現在読み込み中のアーカイブファイルの中で、
                          //次のファイルがあるかどうかを調べる
-  if(!isArchive)
+  if(!isArchive){
     return false;         //アーカイブファイルではないときはfalseで終了
+  }
+  
+  int offset = cFileHead + cFileLen;
+  if(fseek(in, (long)offset, SEEK_SET)!=0){//ファイルの内容の最後までseek
+    error("file format");
+  }    
 
-  xSeekIn(cFileLen);     //ファイルの内容の最後までseek
-
-  int x = getB();
-  if(x==EOF){           //ファイルが最後まで読み込めている場合
-    isArchive = false;  //isArchiveフラグをfalseにする 
+  if(getB()==EOF){           //ファイルが最後まで読み込めている場合
+    isArchive = false;
     printf("debug: nextFile() returned true.\n\tArchive file is already read all.\n"); //デバッグ用
     return false;
-  }else{                      //まだファイルがあるなら
-
-    printf("debug: nextFile() returned false.\n\tArchive file is not read all yet.\n"); //デバッグ用
-
-      xSeekIn(cFileLen); //読んだ分戻して
-      readArchive();          //次のファイルを読む
-
-      return true;    //trueを返す
   }
+
+  printf("debug: nextFile() returned false.\n\tArchive file is not read all yet.\n"); //デバッグ用
+  if(fseek(in, (long)offset, SEEK_SET)!=0){//元の場所に戻る
+    error("file format");
+  } 
+  readArchive();          //次のファイルを読む
+  return true;    //trueを返す
 }
