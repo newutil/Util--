@@ -69,11 +69,11 @@ void readDrRelTbl(int offs, int cDrSize, int symBase, int segBase) {
 }
 
 void updateRelSymx(int ptrIdx) {
-  for (int j=0; j<relIdx; j=j+1) {          //   再配置情報全てについて
-	      if (relTbl[j].symx>=ptrIdx) {       //   名前表の削除位置より後ろを
-	        relTbl[j].symx=relTbl[j].symx-1;  //   参照しているインデクスを調整
-        }
-      }
+  for (int j=0; j<relIdx; j=j+1) {          // 再配置情報全てについて
+    if (relTbl[j].symx>=ptrIdx) {           // 名前表の削除位置より後ろを
+      relTbl[j].symx=relTbl[j].symx-1;      // 参照しているインデクスを調整
+    }
+  }
 }
 
 

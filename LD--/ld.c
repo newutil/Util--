@@ -99,9 +99,9 @@ void copyCode(int offs, int segSize, int segBase, int relBase) {
       int symx = getRelTbl(rel).symx;               // 名前表のインデクスに変換
       int type = getSymTbl(symx).type;
       if (type!=SYMUNDF && type!=SYMBSS) {    // UNDF と BSS は 0 のまま
-	w = getSymTbl(symx).val;
-	if (type==SYMDATA) w=w+textSize;            // データセグメントなら(一応)
-      }                                       // 絶対番地を書き込んでおく
+          w = getSymTbl(symx).val;
+          if (type==SYMDATA) w=w+textSize;            // データセグメントなら(一応)
+        }                                       // 絶対番地を書き込んでおく
       rel = rel + 1;                          // 次のポインタに進む
     }
     putW(w);

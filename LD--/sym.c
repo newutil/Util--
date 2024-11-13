@@ -61,8 +61,8 @@ int mergeSymTbl(int bssSize) {             // 名前の結合を行う
     for (int j=0; j<i; j=j+1) {
       int typeJ = symTbl[j].type;           // PTR以外で同じ綴りを探す
       if (typeJ!=SYMPTR && cmpStr(symTbl[i].strx,symTbl[j].strx)) {
-	      if (typeJ==SYMUNDF && typeI!=SYMUNDF) {        // 後ろ(i)に統合
-	        symTbl[j].type = SYMPTR;
+        if (typeJ==SYMUNDF && typeI!=SYMUNDF) {        // 後ろ(i)に統合
+          symTbl[j].type = SYMPTR;
           symTbl[j].val  = i;
         } else if (typeJ!=SYMUNDF && typeI==SYMUNDF) { // 前(j)に統合
           symTbl[i].type = SYMPTR;
@@ -108,7 +108,7 @@ void updateSymStrx(int curIdx, int changeIdx, int len) { //文字列表の統合
     int idxI = symTbl[i].strx;
     if(idxI == changeIdx) {                 //統合した文字列を指しているならば
       symTbl[i].strx = curIdx;              //以前からある方に合わせる
-    } else if(idxI >= changeIdx) {          //前に詰めた部分にあるものは
+    } else if(idxI > changeIdx) {           //前に詰めた部分にあるものは
       symTbl[i].strx = idxI - len;          //位置調整 
     }
   }
@@ -156,9 +156,9 @@ void packSymTbl() {                         // 名前表の不要エントリー
     if (symTbl[i].type==SYMPTR) {           // PTRなら以下のように削除する
       updateRelSymx(i);                     // 再配置表のインデクスを調整する
       for (int j=i; j<symIdx-1; j=j+1) {    // 名前表を前につめる
-      	symTbl[j].strx = symTbl[j+1].strx;
-	      symTbl[j].type = symTbl[j+1].type;
-	      symTbl[j].val  = symTbl[j+1].val;
+        symTbl[j].strx = symTbl[j+1].strx;
+        symTbl[j].type = symTbl[j+1].type;
+        symTbl[j].val  = symTbl[j+1].val;
       }
       symIdx = symIdx - 1;                  // 名前表を縮小する
     } else {

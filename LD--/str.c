@@ -49,9 +49,9 @@ void putStr(FILE* fp,int n) {               // 文字列表の文字列[n]を表
 
 void packStrTbl(int idxI,int len) {  //  文字列表から統合した綴りを削除する
   for (int k=idxI; k<strIdx-len; k=k+1) {
-	  strTbl[k] = strTbl[k+len];         //   文字列を前につめる
+    strTbl[k] = strTbl[k+len];         //   文字列を前につめる
   }
-	strIdx = strIdx - len;             //   文字列表を縮小
+  strIdx = strIdx - len;             //   文字列表を縮小
 }
 
 void readStrTbl(int offs) {                 // 文字列表の読み込み
@@ -63,26 +63,40 @@ void readStrTbl(int offs) {                 // 文字列表の読み込み
     strIdx = strIdx + 1;
   }
 }
-
-void mergeStrTbl(int strIdxB) {  // 文字列表に新しく追加した綴りに
-                                              // 重複があれば統合する              
-  int idxI = strIdxB;     // 新しい文字列               
-  int idxJ = 0;           // 元からある文字列
-
-  while(idxI < strIdx) {                      // 追加された文字列について
-    idxJ = 0;
-    while(idxJ < strIdxB) {                   // 以前からある文字列と比較
+// 文字列表に新規追加の綴に，以前からの綴と重複があれば統合
+void mergeStrTbl(int strIdxB) {
+  // 追加された全ての綴について
+  for (int idxI=strIdxB; idxI<strIdx; idxI=idxI+strLen(idxI)) {
+    // 以前からある全ての綴と比較
+    for (int idxJ=0; idxJ<strIdxB; idxJ=idxJ+strLen(idxJ)) {
       if(cmpStr(idxI, idxJ)) {                // 同じ綴が見つかったら
         int len = strLen(idxI);
         updateSymStrx(idxJ, idxI, len);       // 名前表のアドレスを調整して
         packStrTbl(idxI,len);                 // 文字列表から統合した綴りを削除
-        break;
-      }                                       // 違う文字列の場合は
-      idxJ = idxJ + strLen(idxJ);             // 次の文字列を準備
+        break;                                // 同じ綴は複数存在しない
+      }
     }
-    idxI = idxI + strLen(idxI);               // 追加された文字列を全てチェック      
   }
 }
+// void mergeStrTbl(int strIdxB) {  // 文字列表に新しく追加した綴りに
+//                                               // 重複があれば統合する              
+//   int idxI = strIdxB;     // 新しい文字列               
+//   int idxJ = 0;           // 元からある文字列
+
+//   while(idxI < strIdx) {                      // 追加された文字列について
+//     idxJ = 0;
+//     while(idxJ < strIdxB) {                   // 以前からある文字列と比較
+//       if(cmpStr(idxI, idxJ)) {                // 同じ綴が見つかったら
+//         int len = strLen(idxI);
+//         updateSymStrx(idxJ, idxI, len);       // 名前表のアドレスを調整して
+//         packStrTbl(idxI,len);                 // 文字列表から統合した綴りを削除
+//         break;
+//       }                                       // 違う文字列の場合は
+//       idxJ = idxJ + strLen(idxJ);             // 次の文字列を準備
+//     }
+//     idxI = idxI + strLen(idxI);               // 追加された文字列を全てチェック      
+//   }
+// }
 
 void writeStrTbl() {                        // 文字列表をファイルへ出力
   for (int i=0; i<strIdx; i=i+1) {          // 全ての文字について
