@@ -7,24 +7,24 @@
 #include "rel.h"
 
 /* 名前表 */
-#define SYM_SIZ  3000                       // 名前表の大きさ (<=16kエントリ)
+#define SYM_SIZ  3000                     // 名前表の大きさ (<=16kエントリ)
 
-struct SymTbl symTbl[SYM_SIZ];              // 名前表本体の定義
-static int symIdx = 0;                             // 表のどこまで使用したか
-static int symSize = 0;                   //出力ファイルのSYMSのサイズ
+struct SymTbl symTbl[SYM_SIZ];            // 名前表本体の定義
+static int symIdx = 0;                    // 表のどこまで使用したか
+static int symSize = 0;                   // 出力ファイルのSYMSのサイズ
 
 
-// int getSymIdx(){                            //使用した表の領域のゲッター
+// int getSymIdx(){                       // 使用した表の領域のゲッター
 //   return symIdx;
 // }
 
-int getSymSize(){         //symSizeを返す
+int getSymSize() {                        // symSizeを返す
   return symSize;
 }
 
-struct SymTbl getSymTbl(int index){                   //名前表のゲッター
-  if(index >= SYM_SIZ || index < 0){
-    error("名前表の参照先がおかしい");    //存在しない番地
+struct SymTbl getSymTbl(int index) {      // 名前表のゲッター
+  if(index >= SYM_SIZ || index < 0) {
+    error("名前表の参照先がおかしい");    // 存在しない番地
   }
   return symTbl[index];
 }
@@ -55,8 +55,9 @@ void readSymTbl(int offs, int sSize,int textBase,int dataBase) {      // 名前�
 int mergeSymTbl(int bssSize) {             // 名前の結合を行う
   for (int i=0; i<symIdx; i=i+1) {         // 全ての名前について
     int typeI = symTbl[i].type;
-    if (isStrLocal(symTbl[i].strx))        // ローカルは無視する
+    if (isStrLocal(symTbl[i].strx)) {       // ローカルは無視する
       continue;
+    }
     for (int j=0; j<i; j=j+1) {
       int typeJ = symTbl[j].type;           // PTR以外で同じ綴りを探す
       if (typeJ!=SYMPTR && cmpStr(symTbl[i].strx,symTbl[j].strx)) {
@@ -101,8 +102,8 @@ int mergeSymTbl(int bssSize) {             // 名前の結合を行う
   return bssSize;
 }
 
-void updateSymStrx(int curIdx, int changeIdx, int len){ //文字列表の統合に合わせて
-                                                        //名前表のアドレスを調整する
+void updateSymStrx(int curIdx, int changeIdx, int len) { //文字列表の統合に合わせて
+                                                         //名前表のアドレスを調整する
   for(int i=0; i<symIdx; i=i+1) {
     int idxI = symTbl[i].strx;
     if(idxI == changeIdx) {                 //統合した文字列を指しているならば
@@ -145,7 +146,7 @@ void printSymType(int type) {               // 名前の種類を印刷
   else error("printSymType:バグ");
 }
 
-void printSymName(int symx){                // 名前表の中から一つの名前の文字列を印刷
+void printSymName(int symx) {               // 名前表の中から一つの名前の文字列を印刷
   putStr(stdout,symTbl[symx].strx);
 }
 
@@ -160,7 +161,8 @@ void packSymTbl() {                         // 名前表の不要エントリー
 	      symTbl[j].val  = symTbl[j+1].val;
       }
       symIdx = symIdx - 1;                  // 名前表を縮小する
-    } else
+    } else {
       i = i + 1;                            // PTR以外なら進める
+    }
   }
 }

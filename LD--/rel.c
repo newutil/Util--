@@ -19,28 +19,28 @@ static int drSize = 0;
 
 
 
-int getRelIdx(){    //使用した表の領域のゲッター
+int getRelIdx() {    //使用した表の領域のゲッター
   return relIdx;
 }
 
-struct Reloc getRelTbl(int index){ //再配置表のゲッター
-  if(index >= REL_SIZ || index < 0){
+struct Reloc getRelTbl(int index) {     //再配置表のゲッター
+  if(index >= REL_SIZ || index < 0) {
     error("再配置表の参照先がおかしい");    //存在しない番地
   }
   return relTbl[index];
 }
 
 
-int getTrSize(){
+int getTrSize() {
   return trSize;
 }
 
-int getDrSize(){
+int getDrSize() {
   return drSize;
 }
 
 
-static void readRelTbl(int offs, int relSize, int symBase, int segBase){
+static void readRelTbl(int offs, int relSize, int symBase, int segBase) {
   xSeekIn(offs);
   for (int i=0; i<relSize; i=i+4) {         // 再配置表の1エントリは4バイト
     int addr = getW() + segBase;            // 再配置アドレス
@@ -56,20 +56,23 @@ static void readRelTbl(int offs, int relSize, int symBase, int segBase){
   }
 }
 
-void readTrRelTbl(int offs, int cTrSize, int symBase, int segBase){
+//テキストリロケーションテーブルを読む場合
+void readTrRelTbl(int offs, int cTrSize, int symBase, int segBase) {
   trSize = trSize + cTrSize;
   readRelTbl(offs,cTrSize,symBase,segBase);
 }
 
-void readDrRelTbl(int offs, int cDrSize, int symBase, int segBase){
+//データリロケーションテーブルを読む場合
+void readDrRelTbl(int offs, int cDrSize, int symBase, int segBase) {
   drSize = drSize + cDrSize;
   readRelTbl(offs,cDrSize,symBase,segBase);
 }
 
-void updateRelSymx(int ptrIdx){
+void updateRelSymx(int ptrIdx) {
   for (int j=0; j<relIdx; j=j+1) {          //   再配置情報全てについて
-	      if (relTbl[j].symx>=ptrIdx)         //   名前表の削除位置より後ろを
+	      if (relTbl[j].symx>=ptrIdx) {       //   名前表の削除位置より後ろを
 	        relTbl[j].symx=relTbl[j].symx-1;  //   参照しているインデクスを調整
+        }
       }
 }
 

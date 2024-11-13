@@ -13,7 +13,6 @@ char *curFile = "";                        // 現在の入出力ファイル
 
 // アーカイブファイル関係
 boolean isArchive = false;        //現在の入力ファイルがアーカイブファイルかどうか
-char *arcCheck = "!<arch>\n";       //アーカイブファイル判定用
 char curAFile[MAX_FILENAME_SIZ];  //アーカイブファイル内の読み込み中ファイル名
 int cFileLen = 0;                 //アーカイブファイル内の読み込み中ファイル長さ
 int cFileHead = 0;                //アーカイブファイル内の読み込み中ファイル内容の先頭アドレス
@@ -42,34 +41,49 @@ void tblError(char *str, int idx, int size) {  //表がパンクした時のエ�
   exit(1);
 }
 
+void checkArc() {
+  char *arcStr = "!<arch>\n";       //アーカイブファイル判定用
+  int i=0;
+  int c;
+  int aLen = strlen(arcStr);
+  while(i<aLen) {
+    c = getB();
+    if(c != arcStr[i]) {             //想定しているファイル形式でなければ
+      fError("アーカイブファイルではない.aファイル\n");   //エラー終了
+    }
+    i = i + 1;
+  }; 
+  printf("debug: File header OK.\n");  //デバッグ用
+
+}
 
 
-void readArchive(){   //アーカイブファイル内の各ファイル情報を読み取る
+void readArchive() {   //アーカイブファイル内の各ファイル情報を読み取る
 
   printf("debug: Execting readArchive().\ndebug: ファイル名：");  //デバッグ用
 
   int i=0;
   int c;
-  while((c=getB())!='\n'){ //ファイル名読み込み
+  while((c=getB())!='\n') { //ファイル名読み込み
     curAFile[i] = (char)c;
     printf("%c",(char)c);
     i = i + 1;
-    if(i>MAX_FILENAME_SIZ){
+    if(i>MAX_FILENAME_SIZ) {
       fError("ライブラリ関数のファイル名が長すぎる\n");
     }
   }
 
-  if((curAFile[i-2]!='.'||curAFile[i-1]!='o')){ //.oファイル以外があった時
-    fError("アーカイブファイル内に扱えないファイルが存在\n");
-  }
+  // if((curAFile[i-2]!='.'||curAFile[i-1]!='o')){ //.oファイル以外があった時
+  //   fError("アーカイブファイル内に扱えないファイルが存在\n");
+  // }
 
-  
   cFileLen = getW();              //ファイルの長さ
   printf("\ndebug: ファイルの長さ：%d\n",cFileLen);
   c = getW();
   printf("debug: masic number：%x\n",c);  //デバッグ用
-  if (c!=A_MAGIC)              //   マジックナンバー
+  if (c!=A_MAGIC) {             //   マジックナンバー
     fError("扱えないアーカイブファイル");
+  }
 
   cFileHead = ftell(in);  //現在の.oファイルの先頭位置を保存
   printf("debug: ファイルの先頭アドレス：%d\n",cFileHead);
@@ -86,27 +100,19 @@ void xOpenIn(char *fname) {                // エラーチェック付きの fop
     fError("can't open");
   }
 
-  int length = strlen(fname);            // 名前の長さを取得
-  if(fname[length-2]=='.' && fname[length-1]=='a'){ //拡張子が.a
+  int length = strlen(fname);                         // 名前の長さを取得
+  if(fname[length-2]=='.' && fname[length-1]=='a') {  //拡張子が.a
 
     printf("debug: This file \"%s\" is archive file.\n",curFile);  //デバッグ用
 
-    int i=0;
-    int c;
-    int aLen = strlen(arcCheck);
-    while(i<aLen){
-      c = getB();
-      printf("%c",(char)c);  //デバッグ用
-      if(c != arcCheck[i])             //想定しているファイル形式でなければ
-        fError("アーカイブファイルではない.aファイル\n");   //エラー終了
-      i = i + 1;
-    }; 
-    printf("debug: File header OK.\n");  //デバッグ用
-
-    isArchive = true;                      //アーカイブのフラグを立て、
-    readArchive();                        //一つ目のライブラリ関数の情報を読む
+    checkArc();
+    isArchive = true;                       //アーカイブのフラグを立て、
+    readArchive();                          //一つ目のライブラリ関数の情報を読む
   }
-  else printf("debug: This file \"%s\" is NOT archive file.\n",curFile);  //デバッグ用
+  else {
+    printf("debug: This file \"%s\" is NOT archive file.\n",curFile);  //デバッグ用
+    isArchive = false;
+  }
 
 }
 
@@ -133,13 +139,15 @@ void xSeekIn(int offset) {  // 入力ファイル用エラーチェック付き�
   if(isArchive)                           //アーカイブファイルの場合
     realOffset = realOffset + cFileHead;  //ファイルの内容の先頭からSEEKする
   
-  if ( (offset&1)!=0 || fseek(in, (long)realOffset, SEEK_SET)!=0)
+  if ( (offset&1)!=0 || fseek(in, (long)realOffset, SEEK_SET)!=0){
     fError("file format");
+  }
 }
 
 void xSeekOut(int offset) { // 出力ファイル用エラーチェック付きの SEEK ルーチン
-  if ((offset&1)!=0 || fseek(out, (long)offset, SEEK_SET)!=0)
+  if ((offset&1)!=0 || fseek(out, (long)offset, SEEK_SET)!=0) {
     fError("file format");
+  }
 }
 
 void putW(int x) {                          // 1ワード出力ルーチン
@@ -156,17 +164,16 @@ int getW() {                                // 1ワード入力ルーチン
 
 boolean nextFile(){      //現在読み込み中のアーカイブファイルの中で、
                          //次のファイルがあるかどうかを調べる
-  if(!isArchive){
+  if(!isArchive) {
     return false;         //アーカイブファイルではないときはfalseで終了
   }
   
   int offset = cFileHead + cFileLen;
-  if(fseek(in, (long)offset, SEEK_SET)!=0){//ファイルの内容の最後までseek
+  if(fseek(in, (long)offset, SEEK_SET)!=0) {    //読み込み中ファイルの内容の最後までseek
     error("file format");
   }    
 
-  if(getB()==EOF){           //ファイルが最後まで読み込めている場合
-    isArchive = false;
+  if(getB()==EOF) {           //ファイルが最後まで読み込めている場合
     printf("debug: nextFile() returned true.\n\tArchive file is already read all.\n"); //デバッグ用
     return false;
   }

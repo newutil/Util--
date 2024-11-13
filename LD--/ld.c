@@ -66,7 +66,7 @@ int dataSize;                              // 出力ファイルのDATAサイズ
 int bssSize;                               // 出力ファイルのBSS サイズ
 
 void writeHdr() {                           // ヘッダ書き出しルーチン
-  putW(MAGIC);                             //   マジックナンバー
+  putW(MAGIC);                              //   マジックナンバー
   putW(textSize);                           //   TEXTサイズ
   putW(dataSize);                           //   DATAサイズ
   putW(bssSize);                            //   BSS サイズ
@@ -77,8 +77,9 @@ void writeHdr() {                           // ヘッダ書き出しルーチン
 }
 
 void readHdr() {                            // ヘッダ読込みルーチン
-  if (getW()!=MAGIC)                        //   マジックナンバー
+  if (getW()!=MAGIC){                       //   マジックナンバー
     fError("扱えないファイル");
+  }
   cTextSize=getW();                         //   TEXTサイズ
   cDataSize=getW();                         //   DATAサイズ
   cBssSize=getW();                          //   BSS サイズ
@@ -99,7 +100,7 @@ void copyCode(int offs, int segSize, int segBase, int relBase) {
       int type = getSymTbl(symx).type;
       if (type!=SYMUNDF && type!=SYMBSS) {    // UNDF と BSS は 0 のまま
 	w = getSymTbl(symx).val;
-	if (type==SYMDATA) w=w+textSize;      // データセグメントなら(一応)
+	if (type==SYMDATA) w=w+textSize;            // データセグメントなら(一応)
       }                                       // 絶対番地を書き込んでおく
       rel = rel + 1;                          // 次のポインタに進む
     }
@@ -127,8 +128,8 @@ int main(int argc, char **argv) {
   int bssBase;                               //     ロードアドレス
 
   if (argc>1 &&
-      (strcmp(argv[1],"-v")==0 ||              //  "-v", "-h" で、使い方と
-       strcmp(argv[1],"-h")==0   ) ) {         //   バージョンを表示
+      (strcmp(argv[1],"-v")==0 ||            //  "-v", "-h" で、使い方と
+       strcmp(argv[1],"-h")==0   ) ) {       //   バージョンを表示
     usage(argv[0]);
     exit(0);
   }
@@ -164,7 +165,7 @@ int main(int argc, char **argv) {
       printf("\n*-*-*-*-*\n\n");
       printf("debug: ld→Execting nextFile().\n"); //デバッグ用
 
-    }while(nextFile()); //アーカイブファイルの場合は繰り返し処理
+    } while(nextFile());                   //アーカイブファイルの場合は繰り返し処理
 
     fcloseIn();
   }
@@ -199,7 +200,7 @@ int main(int argc, char **argv) {
     printf("\n*-*-*-*-*\n\n");
       printf("debug: ld→Execting nextFile().\n"); //デバッグ用
 
-    }while(nextFile()); //アーカイブファイルの場合は繰り返し処理
+    } while(nextFile());                   //アーカイブファイルの場合は繰り返し処理
     fcloseIn();
   }
 
@@ -221,7 +222,7 @@ int main(int argc, char **argv) {
       printf("\n*-*-*-*-*\n\n");
       printf("debug: ld→Execting nextFile().\n"); //デバッグ用
 
-    }while(nextFile()); //アーカイブファイルの場合は繰り返し処理
+    } while(nextFile());                   //アーカイブファイルの場合は繰り返し処理
     fcloseIn();
   }
 

@@ -18,10 +18,8 @@ int getStrIdx(){
   return strIdx;
 }
 
-boolean isStrLocal(int i){                      //文字列表の値がローカルなら正を返す
-  if(strTbl[i] == '.')
-    return true;
-  return false;
+boolean isStrLocal(int i) {                 //文字列表の値がローカルなら正を返す
+  return strTbl[i]=='.';
 }
 
 int strLen(int n) {                         // 文字列表中の文字列(n)の長さ
@@ -49,10 +47,11 @@ void putStr(FILE* fp,int n) {               // 文字列表の文字列[n]を表
   }
 }
 
-void packStrTbl(int idxI,int len){   //  文字列表から統合した綴りを削除する
-  for (int k=idxI; k<strIdx-len; k=k+1)
-	  strTbl[k] = strTbl[k+len];        //     文字列を前につめる
-	strIdx = strIdx - len;              //   文字列表を縮小
+void packStrTbl(int idxI,int len) {  //  文字列表から統合した綴りを削除する
+  for (int k=idxI; k<strIdx-len; k=k+1) {
+	  strTbl[k] = strTbl[k+len];         //   文字列を前につめる
+  }
+	strIdx = strIdx - len;             //   文字列表を縮小
 }
 
 void readStrTbl(int offs) {                 // 文字列表の読み込み
@@ -67,13 +66,13 @@ void readStrTbl(int offs) {                 // 文字列表の読み込み
 
 void mergeStrTbl(int strIdxB) {  // 文字列表に新しく追加した綴りに
                                               // 重複があれば統合する              
-  int idxI = strIdxB;     // 新しい文字列用                 
-  int idxJ = 0;           // 元からある文字列用
+  int idxI = strIdxB;     // 新しい文字列               
+  int idxJ = 0;           // 元からある文字列
 
-  while(idxI < strIdx){                       // 追加された文字列について
+  while(idxI < strIdx) {                      // 追加された文字列について
     idxJ = 0;
-    while(idxJ < strIdxB){                    // 以前からある文字列と比較
-      if(cmpStr(idxI, idxJ)){                 // 同じ綴が見つかったら
+    while(idxJ < strIdxB) {                   // 以前からある文字列と比較
+      if(cmpStr(idxI, idxJ)) {                // 同じ綴が見つかったら
         int len = strLen(idxI);
         updateSymStrx(idxJ, idxI, len);       // 名前表のアドレスを調整して
         packStrTbl(idxI,len);                 // 文字列表から統合した綴りを削除
