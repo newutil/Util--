@@ -65,28 +65,28 @@ int textSize;                              // 出力ファイルのTEXTサイズ
 int dataSize;                              // 出力ファイルのDATAサイズ
 int bssSize;                               // 出力ファイルのBSS サイズ
 
-void writeHdr() {                           // ヘッダ書き出しルーチン
-  putW(MAGIC);                              //   マジックナンバー
-  putW(textSize);                           //   TEXTサイズ
-  putW(dataSize);                           //   DATAサイズ
-  putW(bssSize);                            //   BSS サイズ
-  putW(getSymSize());                       //   SYMSサイズ
-  putW(0);                                  //   ENTRY
-  putW(getTrSize());                        //   Trサイズ
-  putW(getDrSize());                        //   Drサイズ
+void writeHdr() {                          // ヘッダ書き出しルーチン
+  putW(MAGIC);                             //   マジックナンバー
+  putW(textSize);                          //   TEXTサイズ
+  putW(dataSize);                          //   DATAサイズ
+  putW(bssSize);                           //   BSS サイズ
+  putW(getSymSize());                      //   SYMSサイズ
+  putW(0);                                 //   ENTRY
+  putW(getTrSize());                       //   Trサイズ
+  putW(getDrSize());                       //   Drサイズ
 }
 
-void readHdr() {                            // ヘッダ読込みルーチン
-  if (getW()!=MAGIC){                       //   マジックナンバー
+void readHdr() {                           // ヘッダ読込みルーチン
+  if (getW()!=MAGIC) {                     //   マジックナンバー
     fError("扱えないファイル");
   }
-  cTextSize=getW();                         //   TEXTサイズ
-  cDataSize=getW();                         //   DATAサイズ
-  cBssSize=getW();                          //   BSS サイズ
-  cSymSize=getW();                          //   SYMSサイズ
-  getW();                                   //   ENTRY
-  cTrSize=getW();                           //   Trサイズ
-  cDrSize=getW();                           //   Drサイズ
+  cTextSize=getW();                        //   TEXTサイズ
+  cDataSize=getW();                        //   DATAサイズ
+  cBssSize=getW();                         //   BSS サイズ
+  cSymSize=getW();                         //   SYMSサイズ
+  getW();                                  //   ENTRY
+  cTrSize=getW();                          //   Trサイズ
+  cDrSize=getW();                          //   Drサイズ
 }
 
 /* プログラムやデータをリロケートしながらコピーする */
@@ -100,8 +100,8 @@ void copyCode(int offs, int segSize, int segBase, int relBase) {
       int type = getSymTbl(symx).type;
       if (type!=SYMUNDF && type!=SYMBSS) {    // UNDF と BSS は 0 のまま
           w = getSymTbl(symx).val;
-          if (type==SYMDATA) w=w+textSize;            // データセグメントなら(一応)
-        }                                       // 絶対番地を書き込んでおく
+          if (type==SYMDATA) w=w+textSize;    // データセグメントなら(一応)
+        }                                     // 絶対番地を書き込んでおく
       rel = rel + 1;                          // 次のポインタに進む
     }
     putW(w);
@@ -123,13 +123,13 @@ static void usage(char *name) {
 
 // main 関数
 int main(int argc, char **argv) {
-  int textBase;                              // 現在の入力ファイルの
-  int dataBase;                              //   各セグメントの
-  int bssBase;                               //     ロードアドレス
+  int textBase;                            // 現在の入力ファイルの
+  int dataBase;                            //   各セグメントの
+  int bssBase;                             //     ロードアドレス
 
   if (argc>1 &&
-      (strcmp(argv[1],"-v")==0 ||            //  "-v", "-h" で、使い方と
-       strcmp(argv[1],"-h")==0   ) ) {       //   バージョンを表示
+      (strcmp(argv[1],"-v")==0 ||          //  "-v", "-h" で、使い方と
+       strcmp(argv[1],"-h")==0   ) ) {     //   バージョンを表示
     usage(argv[0]);
     exit(0);
   }
@@ -142,7 +142,6 @@ int main(int argc, char **argv) {
   xOpenOut(argv[1]);    //出力ファイルオープン
 
   /* 入力ファイルのシンボルテーブルを読み込んで統合する */
-
   printf("\n***シンボルテーブルの読み込み、統合***\n\n"); //デバッグ用
   textBase = dataBase = bssBase = 0;
   //trSize = drSize  = 0;
@@ -165,7 +164,7 @@ int main(int argc, char **argv) {
       printf("\n*-*-*-*-*\n\n");
       printf("debug: ld→Execting nextFile().\n"); //デバッグ用
 
-    } while(nextFile());                   //アーカイブファイルの場合は繰り返し処理
+    } while(nextFile());      //アーカイブファイルの場合は繰り返し処理
 
     fcloseIn();
   }
@@ -178,12 +177,10 @@ int main(int argc, char **argv) {
                              // シンボルテーブルの統合をする
                              // bssSize, symSize も再計算する
 
-
-  xSeekOut(HDRSIZ);         //ヘッダ分の位置を開けておく
+  xSeekOut(HDRSIZ);          // ヘッダ分の空間を開けておく
   
-
-  printf("\n***テキストセグメントの読み込み、統合***\n\n"); //デバッグ用
   /* テキストセグメントを入力して結合後出力する */
+  printf("\n***テキストセグメントの読み込み、統合***\n\n"); //デバッグ用
   int symBase = 0;
   textBase = 0;
   for (int i=2; i<argc; i=i+1) {
@@ -200,7 +197,7 @@ int main(int argc, char **argv) {
     printf("\n*-*-*-*-*\n\n");
       printf("debug: ld→Execting nextFile().\n"); //デバッグ用
 
-    } while(nextFile());                   //アーカイブファイルの場合は繰り返し処理
+    } while(nextFile());   //アーカイブファイルの場合は繰り返し処理
     fcloseIn();
   }
 
@@ -222,7 +219,7 @@ int main(int argc, char **argv) {
       printf("\n*-*-*-*-*\n\n");
       printf("debug: ld→Execting nextFile().\n"); //デバッグ用
 
-    } while(nextFile());                   //アーカイブファイルの場合は繰り返し処理
+    } while(nextFile());   //アーカイブファイルの場合は繰り返し処理
     fcloseIn();
   }
 

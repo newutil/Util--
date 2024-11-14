@@ -24,7 +24,7 @@ int getRelIdx() {    //使用した表の領域のゲッター
 }
 
 struct Reloc getRelTbl(int index) {     //再配置表のゲッター
-  if(index >= REL_SIZ || index < 0) {
+  if(index >= relIdx || index < 0) {
     error("再配置表の参照先がおかしい");    //存在しない番地
   }
   return relTbl[index];
@@ -39,7 +39,7 @@ int getDrSize() {
   return drSize;
 }
 
-
+//リロケーションテーブルを読む
 static void readRelTbl(int offs, int relSize, int symBase, int segBase) {
   xSeekIn(offs);
   for (int i=0; i<relSize; i=i+4) {         // 再配置表の1エントリは4バイト
@@ -47,7 +47,7 @@ static void readRelTbl(int offs, int relSize, int symBase, int segBase) {
     int symx = getW() & 0x3fff;             // 名前表のエントリ番号
     symx = symx + symBase / 4;              // 名前表の1エントリは4バイト
     while (getSymTbl(symx).type==SYMPTR)    // PTRならポインターをたぐる
-      symx = getSymTbl(symx).val;           //   PTRを使用する再配置情報はない
+      symx = getSymTbl(symx).val;           //  PTRを使用する再配置情報はない
     if (relIdx>=REL_SIZ) tblError("再配置表がパンクした",relIdx,REL_SIZ);
     if ((addr&1)!=0) fError("再配置表に奇数アドレスがある");
     relTbl[relIdx].addr = addr;
@@ -58,19 +58,19 @@ static void readRelTbl(int offs, int relSize, int symBase, int segBase) {
 
 //テキストリロケーションテーブルを読む場合
 void readTrRelTbl(int offs, int cTrSize, int symBase, int segBase) {
-  trSize = trSize + cTrSize;
-  readRelTbl(offs,cTrSize,symBase,segBase);
+  trSize = trSize + cTrSize;                //trSizeにサイズを加えて
+  readRelTbl(offs,cTrSize,symBase,segBase); //読み取り実行
 }
 
 //データリロケーションテーブルを読む場合
 void readDrRelTbl(int offs, int cDrSize, int symBase, int segBase) {
-  drSize = drSize + cDrSize;
-  readRelTbl(offs,cDrSize,symBase,segBase);
+  drSize = drSize + cDrSize;                //drSizeにサイズを加えて
+  readRelTbl(offs,cDrSize,symBase,segBase); //読み取り実行
 }
 
 void updateRelSymx(int ptrIdx) {
   for (int j=0; j<relIdx; j=j+1) {          // 再配置情報全てについて
-    if (relTbl[j].symx>=ptrIdx) {           // 名前表の削除位置より後ろを
+    if (relTbl[j].symx>ptrIdx) {            // 名前表の削除位置より後ろを
       relTbl[j].symx=relTbl[j].symx-1;      // 参照しているインデクスを調整
     }
   }
