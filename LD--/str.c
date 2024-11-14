@@ -18,28 +18,32 @@ int getStrIdx(){
   return strIdx;
 }
 
-boolean isStrLocal(int i) {          //文字列表の値がローカルなら正を返す
+//文字列表の値がローカルなら正を返す
+boolean isStrLocal(int i) {
   return strTbl[i]=='.';
 }
 
-int strLen(int n) {                  // 文字列表中の文字列(n)の長さ
+// 文字列表中の文字列(n)の長さを返す
+int strLen(int n) {
   int i = n;
   while(strTbl[i]!='\0')
     i = i + 1;
-  return i - n + 1;                  // '\0' も数えた値を返す
+  return i - n + 1;    // '\0' も数える
 }
 
-boolean cmpStr(int n, int m) {       // 文字列表[n]〜と[m]〜 を比較する
+// 文字列表[n]〜と[m]〜 を比較する
+boolean cmpStr(int n, int m) {
   for (int i=0; ; i=i+1) {
     char t = strTbl[n+i];
     char s = strTbl[m+i];
-    if (t!=s) return false;          //   異なる
-    if (t=='\0') break;              //   同じ
+    if (t!=s) return false;    //   異なる
+    if (t=='\0') break;        //   同じ
   }
   return true;
 }
 
-void putStr(FILE* fp,int n) {        // 文字列表の文字列[n]を表示する
+// 文字列表の文字列[n]を表示する
+void putStr(FILE* fp,int n) {
   if (n>0x3fff || n>=strIdx) error("putStr:バグ");
   while (strTbl[n]!='\0') {
     putc(strTbl[n],fp);
@@ -47,7 +51,8 @@ void putStr(FILE* fp,int n) {        // 文字列表の文字列[n]を表示す�
   }
 }
 
-void packStrTbl(int idxI,int len) {  //  文字列表から統合した綴りを削除する
+// 文字列表から統合した綴りを削除する
+void packStrTbl(int idxI,int len) {
   for (int k=idxI; k<strIdx-len; k=k+1) {
     strTbl[k] = strTbl[k+len];       //   文字列を前につめる
   }
@@ -69,18 +74,18 @@ void mergeStrTbl(int strIdxB) {
   for (int idxI=strIdxB; idxI<strIdx; idxI=idxI+strLen(idxI)) {
     // 以前からある全ての綴と比較
     for (int idxJ=0; idxJ<strIdxB; idxJ=idxJ+strLen(idxJ)) {
-      if(cmpStr(idxI, idxJ)) {              // 同じ綴が見つかったら
+      if(cmpStr(idxI, idxJ)) {            // 同じ綴が見つかったら
         int len = strLen(idxI);
-        updateSymStrx(idxJ, idxI, len);     // 名前表のアドレスを調整して
-        packStrTbl(idxI,len);               // 文字列表から統合した綴りを削除
-        break;                              // 同じ綴は複数存在しない
+        updateSymStrx(idxJ, idxI, len);   // 名前表のアドレスを調整して
+        packStrTbl(idxI,len);             // 文字列表から統合した綴りを削除
+        break;                            // 同じ綴は複数存在しない
       }
     }
   }
 }
 
-void writeStrTbl() {                        // 文字列表をファイルへ出力
-  for (int i=0; i<strIdx; i=i+1) {          // 全ての文字について
-    putB(strTbl[i]);                        // 出力する
+void writeStrTbl() {                      // 文字列表をファイルへ出力
+  for (int i=0; i<strIdx; i=i+1) {        // 全ての文字について
+    putB(strTbl[i]);                      // 出力する
   }
 }

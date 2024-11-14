@@ -8,22 +8,19 @@
 #include "rel.h"
 
 
+static struct Reloc relTbl[REL_SIZ];      //　再配置表の定義
+static int relIdx;                  // 表のどこまで使用したか
 
-/* 再配置表 */
-static struct Reloc relTbl[REL_SIZ];               // 再配置表の定義
-static int relIdx;                          // 表のどこまで使用したか
+static int trSize = 0;  //テキストリロケーションテーブルの大きさ
+static int drSize = 0;  //データリロケーションテーブルの大きさ
 
-static int trSize = 0;
-static int drSize = 0;
-
-
-
-
-int getRelIdx() {    //使用した表の領域のゲッター
+//使用した表の領域のゲッター
+int getRelIdx() {
   return relIdx;
 }
 
-struct Reloc getRelTbl(int index) {     //再配置表のゲッター
+//再配置表のゲッター
+struct Reloc getRelTbl(int index) {
   if(index >= relIdx || index < 0) {
     error("再配置表の参照先がおかしい");    //存在しない番地
   }
@@ -68,6 +65,7 @@ void readDrRelTbl(int offs, int cDrSize, int symBase, int segBase) {
   readRelTbl(offs,cDrSize,symBase,segBase); //読み取り実行
 }
 
+//シンボルの結合に合わせて、リロケーションテーブルを調整する
 void updateRelSymx(int ptrIdx) {
   for (int j=0; j<relIdx; j=j+1) {          // 再配置情報全てについて
     if (relTbl[j].symx>ptrIdx) {            // 名前表の削除位置より後ろを
@@ -76,9 +74,8 @@ void updateRelSymx(int ptrIdx) {
   }
 }
 
-
-
-void writeRelTbl() {                       // 再配置表をファイルへ出力
+// 再配置表をファイルへ出力
+void writeRelTbl() {
   for (int i=0; i<relIdx; i=i+1) {
     int addr = relTbl[i].addr;
     int symx = relTbl[i].symx;
@@ -88,7 +85,8 @@ void writeRelTbl() {                       // 再配置表をファイルへ出�
   }
 }
 
-void printRelTbl() {                       // 再配置表をリスト出力
+// 再配置表をリスト出力
+void printRelTbl() {
   printf("*** 再配置表 ***\n");
   printf("Addr\tName\tType\tNo.\n");
   for (int i=0; i<relIdx; i=i+1) {

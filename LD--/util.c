@@ -52,7 +52,6 @@ void checkArc() {
       fError("アーカイブファイルではない.aファイル\n");      //エラー終了
     }
   }
-
 }
 
 //アーカイブファイル内の各ファイル情報を読み取る
@@ -83,9 +82,7 @@ void readArchive() {
   cFileHead = ftell(in);  //現在の.oファイルの先頭位置を保存
   printf("debug: ファイルの先頭アドレス：%d\n",cFileHead);
   printf("debug: Ready to archive reading.\n");  //デバッグ用
-    
 }
-
 
 void xOpenIn(char *fname) {                // エラーチェック付きの fopen
                                            // アーカイブファイルに対応
@@ -103,7 +100,7 @@ void xOpenIn(char *fname) {                // エラーチェック付きの fop
     readArchive();                          //一つ目のライブラリ関数の情報を読む
   }
   else {
-    printf("debug: This file \"%s\" is NOT archive file.\n",curFile);  //デバッグ用
+    printf("debug: This file \"%s\" is NOT archive file.\n",curFile);//デバッグ用
     isArchive = false;
   }
 

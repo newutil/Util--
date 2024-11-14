@@ -46,7 +46,8 @@ void readSymTbl(int offs, int sSize,int textBase,int dataBase) {
   }
  }
 
-int mergeSymTbl(int bssSize) {              // 名前の結合を行う
+// 名前の結合を行う
+int mergeSymTbl(int bssSize) {
   for (int i=0; i<symIdx; i=i+1) {          // 全ての名前について
     int typeI = symTbl[i].type;
     if (isStrLocal(symTbl[i].strx)) {       // ローカルは無視する
@@ -132,7 +133,8 @@ void printSymTbl() {
   }
 }
 
-void printSymType(int type) {               // 名前の種類を印刷
+// 名前の種類を印刷
+void printSymType(int type) {
   if (type==SYMTEXT) printf("TEXT");        //   = 1
   else if (type==SYMDATA) printf("DATA");   //   = 2
   else if (type==SYMBSS)  printf("BSS");    //   = 3

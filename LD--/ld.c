@@ -61,6 +61,7 @@ int cDrSize;                               // 現在の入力ファイルのDr  
 
 // writeHdr と copyCode と main の共有変数
 int textSize;                              // 出力ファイルのTEXTサイズ
+
 // writeHdr と main の共有変数
 int dataSize;                              // 出力ファイルのDATAサイズ
 int bssSize;                               // 出力ファイルのBSS サイズ
@@ -174,8 +175,8 @@ int main(int argc, char **argv) {
   bssSize  = bssBase;
 
   bssSize = mergeSymTbl(bssSize); 
-                             // シンボルテーブルの統合をする
-                             // bssSize, symSize も再計算する
+                             // シンボルテーブルの統合
+                             // bssSizeの値を再計算させる
 
   xSeekOut(HDRSIZ);          // ヘッダ分の空間を開けておく
   
@@ -202,14 +203,15 @@ int main(int argc, char **argv) {
   }
 
   
-  printf("\n***データセグメントの読み込み、統合***\n\n"); //デバッグ用
+
   /* データセグメントを入力して結合後出力する */
+    printf("\n***データセグメントの読み込み、統合***\n\n"); //デバッグ用
   dataBase = symBase = 0;
   for (int i=2; i<argc; i=i+1) {
     xOpenIn(argv[i]);
     do{
       readHdr();
-      int relBase = getRelIdx();/*relIdx;*/
+      int relBase = getRelIdx();
       readDrRelTbl(HDRSIZ+cTextSize+cDataSize+cTrSize,cDrSize,symBase,dataBase);
       copyCode(HDRSIZ+cTextSize,cDataSize,dataBase,relBase);   // データをコピー
 
@@ -223,16 +225,16 @@ int main(int argc, char **argv) {
     fcloseIn();
   }
 
-  packSymTbl();                            // 名前表から結合した残骸を削除
+  packSymTbl();            // 名前表から結合した残骸を削除
 
-  writeRelTbl();                           // 再配置表を出力する
-  printRelTbl();                           // 再配置表をリスト出力する
-  writeSymTbl();                           // 名前表を出力する
-  printSymTbl();                           // 名前表をリスト出力する
-  writeStrTbl();                           // 文字列表を出力する
+  writeRelTbl();           // 再配置表を出力する
+  printRelTbl();           // 再配置表をリスト出力する
+  writeSymTbl();           // 名前表を出力する
+  printSymTbl();           // 名前表をリスト出力する
+  writeStrTbl();           // 文字列表を出力する
 
-  xSeekOut(0);               // 先頭に戻る
-  writeHdr();                // ヘッダを出力する
+  xSeekOut(0);             // 先頭に戻る
+  writeHdr();              // ヘッダを出力する
   fcloseOut();
   exit(0);
 }
