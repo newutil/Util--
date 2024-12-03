@@ -6,11 +6,18 @@
 #include "sym.h"
 #include "rel.h"
 
-#define SYM_SIZ  3000                     // 名前表の大きさ (<=16kエントリ)
+#define SYM_SIZ  3000              // 名前表の大きさ (<=16kエントリ)
 
-struct SymTbl symTbl[SYM_SIZ];            // 名前表本体の定義
-static int symIdx = 0;                    // 表のどこまで使用したか
-static int symSize = 0;                   // 出力ファイルのSYMSのサイズ
+struct SymTbl symTbl[SYM_SIZ];     // 名前表本体の定義
+int symIdx = 0;                    // 表のどこまで使用したか
+int symSize = 0;                   // 出力ファイルのSYMSのサイズ
+
+int preSymIdx = 0;                 // 一時保存用symIdx
+int preSymSize = 0;                // 一時保存用symSize
+
+int getSymIdx() {                         // symIdxを返す
+  return symIdx;
+}
 
 int getSymSize() {                        // symSizeを返す
   return symSize;
@@ -50,12 +57,16 @@ void readSymTbl(int offs, int sSize,int textBase,int dataBase) {
 int mergeSymTbl(int bssSize) {
   for (int i=0; i<symIdx; i=i+1) {          // 全ての名前について
     int typeI = symTbl[i].type;
-    if (isStrLocal(symTbl[i].strx)) {       // ローカルは無視する
+                                            // ローカルなものと
+                                            // ARCV,PTRは無視する
+    if (typeI==SYMPTR || typeI==SYMARCV
+        || isStrLocal(symTbl[i].strx)) {
       continue;
     }
     for (int j=0; j<i; j=j+1) {
-      int typeJ = symTbl[j].type;           // PTR以外で同じ綴りを探す
-      if (typeJ!=SYMPTR && cmpStr(symTbl[i].strx,symTbl[j].strx)) {
+      int typeJ = symTbl[j].type;           // ARCVとPTR以外で同じ綴りを探す
+      if (typeJ!=SYMARCV && typeJ!=SYMPTR 
+        && cmpStr(symTbl[i].strx,symTbl[j].strx)) {
         if (typeJ==SYMUNDF && typeI!=SYMUNDF) {
           symTbl[j].type = SYMPTR;          // 後ろ(i)に統合
           symTbl[j].val  = i;
@@ -86,6 +97,7 @@ int mergeSymTbl(int bssSize) {
             symTbl[i].val  = j;
           }
         } else {
+          printf("No.%d\t",i);
           putStr(stderr,symTbl[i].strx);
           error(":ラベルの二重定義");
         }
@@ -101,7 +113,10 @@ int mergeSymTbl(int bssSize) {
 void updateSymStrx(int curIdx, int changeIdx, int len) {
   for(int i=0; i<symIdx; i=i+1) {
     int idxI = symTbl[i].strx;
-    if(idxI == changeIdx) {                 // 統合した文字列を指しているならば
+    if(symTbl[i].type == SYMARCV) {         // ライブラリのラベルは無視
+      continue;
+    }        
+    else if(idxI == changeIdx) {            // 統合した文字列を指しているならば
       symTbl[i].strx = curIdx;              // 以前からある方に合わせる
     } else if(idxI > changeIdx) {           // 前に詰めた部分にあるものは
       symTbl[i].strx = idxI - len;          // 位置調整 
@@ -124,12 +139,22 @@ void printSymTbl() {
   for (int i=0; i<symIdx; i=i+1) {
     int strx = symTbl[i].strx;
     int type = symTbl[i].type;
-    int val  = symTbl[i].val;
+    int val  = symTbl[i].val;  //デバッグのためptrとARCVも表示するようにしている
+    if(type==SYMARCV){
+      printf("%d\t",i);
+      printf("%d",strx);
+      printf("\tARCV");
+      printf("\t%04x\n", val&0xffff);
+    }
+    else {
     printf("%d\t",i);
     putStr(stdout,strx);
     printf("\t");
-    printSymType(type);
+    if(type==SYMPTR){
+      printf("PTR");
+    } else printSymType(type);
     printf("\t%04x\n", val&0xffff);
+    }
   }
 }
 
@@ -139,6 +164,7 @@ void printSymType(int type) {
   else if (type==SYMDATA) printf("DATA");   //   = 2
   else if (type==SYMBSS)  printf("BSS");    //   = 3
   else if (type==SYMUNDF) printf("UNDF");   //   = 0
+
   else error("printSymType:バグ");
 }
 
@@ -151,7 +177,15 @@ void printSymName(int symx) {
 void packSymTbl() {
   int i = 0;
   while (i<symIdx) {                        // 全てのエントリーについて
-    if (symTbl[i].type==SYMPTR) {           // PTRなら以下のように削除する
+    if (symTbl[i].type==SYMARCV) {          // ARCVなら以下のように削除する
+      updateRelSymx(i);                     // 再配置表のインデクスを調整する
+      for (int j=i; j<symIdx-1; j=j+1) {    // 名前表を前につめる
+        symTbl[j] = symTbl[j+1];
+      }
+      symIdx = symIdx - 1;                  // 名前表を縮小する
+    }
+
+    else if (symTbl[i].type==SYMPTR) {      // PTRなら以下のように削除する
       updateRelSymx(i);                     // 再配置表のインデクスを調整する
       for (int j=i; j<symIdx-1; j=j+1) {    // 名前表を前につめる
         symTbl[j] = symTbl[j+1];
@@ -161,4 +195,48 @@ void packSymTbl() {
       i = i + 1;                            // PTR以外なら進める
     }
   }
+}
+
+//名前解決が可能か調べる
+boolean checkSymMerge(int startIdx) {
+  for (int i=startIdx; i<preSymIdx; i=i+1) {// 調べる名前について
+    int typeI = symTbl[i].type;
+    if (isStrLocal(symTbl[i].strx)          // ローカルと
+        || typeI == SYMPTR                  // ポインタと
+        || typeI == SYMARCV) {              // ARCVは無視する    
+      continue;
+    }                                       // ライブラリ関数から
+    for (int j=preSymIdx; j<symIdx; j=j+1) {// 読み込んだ名前表に対して
+      int typeJ = symTbl[j].type;           // 同じ綴りのものを探す
+      if (cmpStr(symTbl[i].strx,symTbl[j].strx)) {
+                                            // 名前解決できるなら
+        if((symTbl[i].type == SYMUNDF && symTbl[j].type != SYMUNDF)
+        || (symTbl[i].type == SYMBSS && symTbl[j].type == SYMDATA)) {
+          return true;                      // trueを返す
+        }
+      }
+    }
+  }
+  return false;
+}
+
+// ライブラリ関数の位置を記録した特別なシンボルを末尾に追加する
+// strxにargvの番号、valに内容の開始アドレスを記入
+void addSymArcv(int num, int addr) {
+  symTbl[symIdx].strx = num;
+  symTbl[symIdx].type = SYMARCV;
+  symTbl[symIdx].val = addr;
+  symIdx = symIdx + 1;
+}
+
+//シンボルテーブルを保存
+void saveSymTbl() {
+  preSymIdx = symIdx;
+  preSymSize = symSize;
+}
+
+//保存したシンボルテーブルをロード
+void loadSymTbl() {
+  symIdx = preSymIdx;
+  symSize = preSymSize;
 }

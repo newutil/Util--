@@ -6,13 +6,9 @@
 
 #define STR_SIZ  16000               // 文字列表の大きさ(<=16kB)
 
-// #define boolean int               // boolean 型のつもり
-// #define true     1
-// #define false    0
-
-static int  strIdx = 0;              // 表のどこまで使用したか
-static char strTbl[STR_SIZ];         // 文字列表
-
+int  strIdx = 0;              // 表のどこまで使用したか
+char strTbl[STR_SIZ];         // 文字列表
+int  preStrIdx = 0;
 
 int getStrIdx(){
   return strIdx;
@@ -59,7 +55,8 @@ void packStrTbl(int idxI,int len) {
   strIdx = strIdx - len;             //   文字列表を縮小
 }
 
-void readStrTbl(int offs) {          // 文字列表の読み込み
+// 文字列表の読み込み
+void readStrTbl(int offs) {
   xSeekIn(offs);                     // 文字列表の位置に移動
   int c;
   while ((c=getB())!=EOF) {          // EOFになるまで読み込む
@@ -68,6 +65,7 @@ void readStrTbl(int offs) {          // 文字列表の読み込み
     strIdx = strIdx + 1;
   }
 }
+
 // 文字列表に新規追加の綴に，以前からの綴と重複があれば統合
 void mergeStrTbl(int strIdxB) {
   // 追加された全ての綴について
@@ -84,8 +82,19 @@ void mergeStrTbl(int strIdxB) {
   }
 }
 
-void writeStrTbl() {                      // 文字列表をファイルへ出力
+// 文字列表をファイルへ出力
+void writeStrTbl() {
   for (int i=0; i<strIdx; i=i+1) {        // 全ての文字について
     putB(strTbl[i]);                      // 出力する
   }
+}
+
+// 文字列表をセーブ
+void saveStrTbl() {
+  preStrIdx = strIdx;
+}
+
+// セーブした文字列表をロード
+void loadStrTbl() {
+  strIdx = preStrIdx;
 }

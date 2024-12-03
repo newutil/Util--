@@ -11,6 +11,7 @@ struct SymTbl {                             // 名前表の型定義
 
 
 struct SymTbl getSymTbl(int index);         // 名前表のゲッター
+int getSymIdx();
 int getSymSize();
 void readSymTbl(int offs, int sSize, int textBase, int dataBase);   // 名前表の読み込み
 int mergeSymTbl(int bssSize);               // 名前を統合
@@ -20,4 +21,8 @@ void printSymType(int type);                // 名前表の種類を印刷
 void printSymName(int symx);
 void printSymTbl();                         // 名前表をリストへ出力
 void packSymTbl();
+void addSymArcv(int num, int addr);
+void saveSymTbl();
+void loadSymTbl();
+boolean checkSymMerge(int startIdx);
 #endif
