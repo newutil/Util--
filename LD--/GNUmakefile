@@ -19,7 +19,8 @@
 #
 # Makefile : LD-- の makefile
 #
-# 2016.10.09  v3.0.0 : バージョン番号をUtil--で共用にする
+# 2024.05.22         : ld.c を分割する作業開始
+# 2016.10.09 v3.0.0  : バージョン番号をUtil--で共用にする
 # 2012.08.01 v2.0    : TaC-CPU V2 に対応
 # 2010.12.07 v0.0.4  : バージョン情報等とともにコンパイルするように変更
 # 2010.08.02         : テスト用のサンプルを Test ディレクトリに移動
@@ -38,7 +39,7 @@ all: ld--
 
 ld-- : ld.c GNUmakefile
 	${CC} ${CFLAGS} -DDATE=${DATE} -DVER=${VER} \
-	-o ld-- ld.c
+	-o ld-- ld.c rel.c sym.c str.c util.c 
 
 install: ld--
 	install -d -m 755 /usr/local/bin

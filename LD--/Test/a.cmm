@@ -1,0 +1,21 @@
+#include "testArc.hmm"
+#include "testArc2.hmm"
+
+public int a;
+public boolean b;
+
+int c;
+
+struct s{
+    int name;
+    int age;
+};
+
+public s y;
+
+public char[] ar;
+public int main(){
+    char c = arcz('1');
+    int i = arcx(1);
+    return i;
+}

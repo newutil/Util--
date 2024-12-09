@@ -1,0 +1,5 @@
+#ifndef TESTARC2_H
+#define TESTARC2_H
+public char arcz(char a);
+
+#endif /* TESTARC2_H */
