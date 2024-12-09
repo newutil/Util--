@@ -143,9 +143,12 @@ void importLibSymTbls(int argc, char **argv) {
           readStrTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize+cSymSize);
           mergeStrTbl(newStrBase);
 
-          if(checkSymMerge(startIdx)) { // チェックの開始地点を指定して判定を行う
-                                        // 名前解決が可能ならば文字列表も読む
-            merged = true;
+
+          if(checkSymMerge(startIdx)) {  // チェックの開始地点を指定して判定を行う
+            merged = true;                    // 名前解決が可能ならばフラグを立て
+            textBase = textBase + cTextSize;       // 各セグメントのサイズを加算
+            dataBase = dataBase + cDataSize;
+            bssBase  = bssBase  + cBssSize;
             addSymArcv(i,getLibHead()); // ライブラリ関数の目印シンボルを追加する
           }
           else {             // 名前解決ができないならば
@@ -154,6 +157,7 @@ void importLibSymTbls(int argc, char **argv) {
           }                  // 読み込んだライブラリ関数を捨てる
 
         } while(nextFile()); // アーカイブ内全てのライブラリ関数について同様の処理を行う
+        fcloseIn();
       }
     }
     
@@ -296,7 +300,6 @@ void importDataSegments(int argc, char **argv) {
 
       fcloseIn();
     
-    
     }
   }
 }
@@ -325,7 +328,6 @@ int main(int argc, char **argv) {
     usage(argv[0]);
     exit(0);
   }
-
   if (argc<3) {
     usage(argv[0]);
     exit(0);
@@ -339,7 +341,6 @@ int main(int argc, char **argv) {
   
   importTextSegments(argc, argv);    // テキストセグメントを入力して結合後出力する
   importDataSegments(argc, argv);    // データセグメントを入力して結合後出力する 
-
 
   packSymTbl();              // 名前表から結合した残骸を削除
   

@@ -66,7 +66,7 @@ void readArchive() {
   int c;
 
   while((c=getB())!='\n') { // ファイル名を読み込む
-    curAFile[i] = (char)c;
+    curAFile[i] = (char)c; // 未使用なので消してもいいかも
     i = i + 1;
     if(i>MAX_FILENAME_SIZ) {
       fError("ライブラリ関数のファイル名が長すぎる\n");
