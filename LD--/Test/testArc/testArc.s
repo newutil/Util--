@@ -1,0 +1,36 @@
+_tc	DW	67
+_arcx	PUSH	FP
+	LD	FP,SP
+	PUSH	G3
+	PUSH	G4
+	PUSH	G5
+	CALL	__stkChk
+	LD	G3,#1
+	LD	G4,#2
+	LD	G5,#3
+	LD	G0,G3
+	ADD	G0,G4
+	ADD	G0,G5
+	ADD	G0,4,FP
+	POP	G5
+	POP	G4
+	POP	G3
+	POP	FP
+	RET
+_arcy	PUSH	FP
+	LD	FP,SP
+	PUSH	G3
+	CALL	__stkChk
+	LD	G3,#1
+	PUSH	G3
+	CALL	_arcx
+	ADD	SP,#2
+	CMP	G0,#10
+	JNZ	.L1
+	JMP	.L2
+.L1
+	JMP	.L2
+.L2
+	POP	G3
+	POP	FP
+	RET

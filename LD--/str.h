@@ -11,5 +11,5 @@ void packStrTbl(int idxI,int len);          // 文字列表から統合した綴
 void mergeStrTbl( int strIdxB);             // 文字列表の重複を統合
 void writeStrTbl();                         // 文字列表をファイルへ出力
 void saveStrTbl();                          // 文字列表をセーブ
-void loadStrTbl();                          // セーブした文字列表をロード
+void rollbackStrTbl();                      // セーブした文字列表をロード
 #endif

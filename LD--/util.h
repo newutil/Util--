@@ -11,7 +11,7 @@
 #define SYMPTR  4                           // 表の他要素へのポインタ
 #define SYMARCV 5                           // ライブラリ関数のラベル
 
-int getLibHead();
+int getCFileHead();
 int getB();
 void putB(char c);
 void error(char *str);                          // エラーメッセージを表示して終了
@@ -27,6 +27,8 @@ void xSeekOut(int offset);
 void putW(int x);                               // 1ワード出力ルーチン
 int getW();                                     // 1ワード入力ルーチン
 boolean nextFile();
+boolean endsWith(char *str, char *suffix);
+boolean isInLibRange(int idx);           // 読み込み中ライブラリ関数の範囲内にいるかチェック
 
 
 #endif

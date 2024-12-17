@@ -23,6 +23,6 @@ void printSymTbl();                         // 名前表をリストへ出力
 void packSymTbl();
 void addSymArcv(int num, int addr);
 void saveSymTbl();
-void loadSymTbl();
+void rollbackSymTbl();
 boolean checkSymMerge(int startIdx);
 #endif

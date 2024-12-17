@@ -1,8 +1,15 @@
+//ソースコード3。
+//testArc2,testArc3を使用している。
+//testArc2,testArc3はtestArcの関数を使用している。
 
+#include "testArc2.hmm"
+#include "testArc3.hmm"
 int a=20;
 
 public boolean c = true;
 
-void n(){
-    
+public void fc(){
+    char cc = arcz('1');
+    arcn();
+    return;
 }

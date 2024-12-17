@@ -43,6 +43,7 @@ static void readRelTbl(int offs, int relSize, int symBase, int segBase) {
     int addr = getW() + segBase;            // 再配置アドレス
     int symx = getW() & 0x3fff;             // 名前表のエントリ番号
     symx = symx + symBase / 4;              // 名前表の1エントリは4バイト
+    
     while (getSymTbl(symx).type==SYMPTR)    // PTRならポインターをたぐる
       symx = getSymTbl(symx).val;           //  PTRを使用する再配置情報はない
     if (relIdx>=REL_SIZ) tblError("再配置表がパンクした",relIdx,REL_SIZ);

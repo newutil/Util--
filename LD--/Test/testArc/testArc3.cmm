@@ -1,0 +1,9 @@
+//ライブラリ関数3。
+//testArcの関数を使用している。
+
+#include "testArc.hmm"
+#include "testArc3.hmm"
+public int arcn(){
+    arcy();
+    return 0;
+}

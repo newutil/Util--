@@ -1,0 +1,16 @@
+_arcz	PUSH	FP
+	LD	FP,SP
+	PUSH	G3
+	PUSH	G4
+	CALL	__stkChk
+	LD	G0,#1
+	PUSH	G0
+	CALL	_arcx
+	ADD	SP,#2
+	LD	G3,G0
+	LD	G4,4,FP
+	LD	G0,G4
+	POP	G4
+	POP	G3
+	POP	FP
+	RET

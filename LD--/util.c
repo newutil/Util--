@@ -13,20 +13,23 @@ char *curFile = "";              // 現在の入出力ファイル
 
 // アーカイブファイル関係
 boolean isArchive = false;       // 現在の入力ファイルがアーカイブファイルかどうか
-char curAFile[MAX_FILENAME_SIZ]; // 読み込み中ライブラリ関数のファイル名
 int cFileLen = 0;                // 読み込み中ライブラリ関数のファイル長さ
 int cFileHead = 0;               // 読み込み中ライブラリ関数のファイル内容先頭アドレス
+int cNextFile = 0;                // 次のライブラリ関数の先頭アドレス
 
 
-int getLibHead() {
+// cFileHeadのゲッター
+int getCFileHead() {
   return cFileHead;
 }
 
 
+// 1バイト入力ルーチン
 int getB() {
   return fgetc(in);
 }
 
+// 1バイト出力ルーチン
 void putB(char c) {
   fputc(c,out);
 }
@@ -49,6 +52,20 @@ void tblError(char *str, int idx, int size) {
   exit(1);
 }
 
+// ある文字列の末尾が特定の文字列で終わっているか判定
+boolean endsWith(char *str, char *suffix){
+  int len1 = strlen(str);
+  int len2 = strlen(suffix);
+  if(len1<len2) {
+    return false;
+  }
+  if(strcmp(str + len1 - len2, suffix) == 0) {
+   return true;
+  }
+  return false;
+}
+
+// 読み込んだアーカイブファイルのヘッダを確認
 void checkArc() {
   char *arcStr = "!<arch>\n";    // アーカイブファイル判定用
   int aLen = strlen(arcStr);
@@ -66,7 +83,6 @@ void readArchive() {
   int c;
 
   while((c=getB())!='\n') { // ファイル名を読み込む
-    curAFile[i] = (char)c; // 未使用なので消してもいいかも
     i = i + 1;
     if(i>MAX_FILENAME_SIZ) {
       fError("ライブラリ関数のファイル名が長すぎる\n");
@@ -79,31 +95,30 @@ void readArchive() {
     fError("扱えないアーカイブファイル");
   }
 
-  cFileHead = ftell(in);        // 現在の.oファイルの先頭位置を保存
+  cFileHead = ftell(in);            // 現在の.oファイル内容の先頭位置と
+  cNextFile = cFileLen + cFileHead; // 次のライブラリ関数の先頭位置を保存
+
+  printf("cNextFile = %d\n",cNextFile); // デバッグ用
+  printf("cFileLen  = %d\n",cFileLen);  // デバッグ用
+  printf("cFileHead = %d\n",cFileHead); // デバッグ用
 }
 
 void xOpenIn(char *fname) {     // エラーチェック付きの fopen
                                 // アーカイブファイルに対応
   curFile = fname;
-
   if ((in = fopen(fname, "rb"))==NULL) {   // 入力ファイルオープン
     fError("can't open");
   }
-
   
-  int length = strlen(fname);                      // 名前の長さを取得
-  if(fname[length-2]=='.' && fname[length-1]=='a') { // 拡張子が.aなら
-    checkArc();                        // ヘッダを確認
-    isArchive = true;                  // アーカイブのフラグを立て、
-    readArchive();                     // 一つ目のライブラリ関数の情報を読む
+  if(endsWith(fname,".a")) {    // 拡張子が.aなら
+    checkArc();                 // ヘッダを確認
+    isArchive = true;           // アーカイブのフラグを立て、
+    readArchive();              // 一つ目のライブラリ関数の情報を読む
   }
   else {
     isArchive = false;
   }
-
 }
-
-
 
 void xOpenOut(char *fname){                 // エラーチェック付きの fopen
   if ((out = fopen(fname,"wb"))==NULL) {    // 出力ファイルオープン
@@ -164,19 +179,28 @@ boolean nextFile(){      // 現在読み込み中のアーカイブファイル�
   if(!isArchive) {       // アーカイブファイルではないときは
     return false;        // falseで終了
   }
-  
-  int offset = cFileHead + cFileLen;           // 読み込み中ファイルの
-  if(fseek(in, (long)offset, SEEK_SET)!=0) {   // 内容の最後までseek
-    error("file format");
+        
+  if(fseek(in, (long)cNextFile, SEEK_SET)!=0) {   // 読み込み中ファイルの
+    error("file format");                        // 次の場所までseek
   }    
 
   if(getB()==EOF) {           // ファイルが最後まで読み込めている場合
     return false;             // falseを返す
   }
 
-  if(fseek(in, (long)offset, SEEK_SET)!=0) { // 次の読み取り位置までseek
+  if(fseek(in, (long)cNextFile, SEEK_SET)!=0) { // getBした位置に戻す
     error("file format");
-  } 
+  }  
   readArchive();          // 次のファイルを読む
   return true;            // trueを返す
+}
+
+// 読み込み中ライブラリ関数の範囲内にいるかチェック
+boolean isInLibRange(int addr) {
+  if(!isArchive) return true;  // アーカイブの時だけ考える
+
+  if(0 <= addr && addr < cFileLen) { // アドレスがライブラリ関数の範囲内なら
+    return true;                             // trueを返す
+  }
+  return false;
 }

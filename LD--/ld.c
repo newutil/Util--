@@ -94,7 +94,18 @@ void readHdr() {                           // ヘッダ読込みルーチン
   cTrSize=getW();                          //   Trサイズ
   cDrSize=getW();                          //   Drサイズ
 }
+void printHdr() {                          // デバッグ用に用意してるやつ
+  printf("* * *ヘッダ* * *\n");
+  printf("MAGIC   :0x%04x\n",MAGIC);
+  printf("TEXTSIZE:%d\n",textSize);
+  printf("DATASIZE:%d\n",dataSize);
+  printf("BSSSIZE :%d\n",bssSize);
+  printf("SYMSIZE :%d\n",getSymSize());
+  printf("ZERO    :%d\n",0);
+  printf("TRSIZE  :%d\n",getTrSize());
+  printf("DRSIZE  :%d\n\n",getDrSize());
 
+}
 /* プログラムやデータをリロケートしながらコピーする */
 void copyCode(int offs, int segSize, int segBase, int relBase) {
   xSeekIn(offs);
@@ -127,8 +138,7 @@ void importLibSymTbls(int argc, char **argv) {
     merged = false;
     nowSymIdx = getSymIdx(); // 今のsymIdxを保存
     for(int i=2;i<argc; i=i+1) {
-      int length = strlen(argv[i]); 
-      if(argv[i][length-2]=='.' && argv[i][length-1]=='a') { // アーカイブファイルに対して
+      if(endsWith(argv[i],".a")) { // アーカイブファイルに対して
 
         xOpenIn(argv[i]);
         do {
@@ -141,20 +151,22 @@ void importLibSymTbls(int argc, char **argv) {
           readSymTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize,
                    cSymSize,textBase,dataBase);
           readStrTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize+cSymSize);
-          mergeStrTbl(newStrBase);
 
 
           if(checkSymMerge(startIdx)) {  // チェックの開始地点を指定して判定を行う
             merged = true;                    // 名前解決が可能ならばフラグを立て
+
+            mergeStrTbl(newStrBase);                       // 文字列表を統合し
+
             textBase = textBase + cTextSize;       // 各セグメントのサイズを加算
             dataBase = dataBase + cDataSize;
             bssBase  = bssBase  + cBssSize;
-            addSymArcv(i,getLibHead()); // ライブラリ関数の目印シンボルを追加する
+            addSymArcv(i,getCFileHead());  // ライブラリ関数の目印シンボルを追加する
           }
-          else {             // 名前解決ができないならば
-            loadSymTbl();    // 保存しておいたシンボルテーブルと
-            loadStrTbl();    // 文字列表をロードして
-          }                  // 読み込んだライブラリ関数を捨てる
+          else {                 // 名前解決ができないならば
+            rollbackSymTbl();    // 保存しておいたシンボルテーブルと
+            rollbackStrTbl();    // 文字列表をロールバックして
+          }                      // 読み込んだライブラリ関数を捨てる
 
         } while(nextFile()); // アーカイブ内全てのライブラリ関数について同様の処理を行う
         fcloseIn();
@@ -166,6 +178,9 @@ void importLibSymTbls(int argc, char **argv) {
       bssSize  = bssBase;
                                       // シンボルテーブルの統合
       bssSize = mergeSymTbl(bssSize); // bssSizeの値を再計算させる
+
+      bssBase  = bssSize;
+       printf("bssSize : %d",bssSize);
     
                              // 名前解決が発生する場合、
     startIdx = nowSymIdx;    // 次は読み込んだライブラリ関数について名前解決を試みる
@@ -178,8 +193,7 @@ void importSymTbls(int argc, char **argv) {
   textBase = dataBase = bssBase = 0;
   //trSize = drSize  = 0;
   for (int i=2; i<argc; i=i+1) {
-    int length = strlen(argv[i]);
-    if(argv[i][length-2]=='.' && argv[i][length-1]=='o') { // オブジェクトファイルに対して
+    if(endsWith(argv[i],".o")) { // オブジェクトファイルに対して
       xOpenIn(argv[i]); //入力ファイルオープン 
       int newStrBase = getStrIdx();
       readHdr();
@@ -198,12 +212,14 @@ void importSymTbls(int argc, char **argv) {
     }
   }
 
-  textSize = textBase;
-  dataSize = dataBase;
+  // textSize = textBase;
+  // dataSize = dataBase;
   bssSize  = bssBase;
 
   bssSize = mergeSymTbl(bssSize);  // シンボルテーブルの統合
                                    // bssSizeの値を再計算させる
+
+  bssBase = bssSize;
 
   importLibSymTbls(argc, argv);  // ライブラリ関数から必要なものを入力する
 
@@ -216,8 +232,7 @@ void importTextSegments(int argc, char **argv) {
   int symBase = 0;
   textBase = 0;
   for (int i=2; i<argc; i=i+1) {
-    int length = strlen(argv[i]);
-    if(argv[i][length-2]=='.' && argv[i][length-1]=='o') { // オブジェクトファイルに対して
+    if(endsWith(argv[i],".o")) { // オブジェクトファイルに対して
       xOpenIn(argv[i]);   //入力ファイルオープン
       readHdr();
       int relBase = getRelIdx();  // relIdx
@@ -235,6 +250,7 @@ void importTextSegments(int argc, char **argv) {
     if(getSymTbl(i).type == SYMARCV) {  // シンボルの型がSYMARCVのとき
       int num  = getSymTbl(i).strx;     // アーカイブファイルの番号と
       int addr = getSymTbl(i).val;      // ファイル内アドレスを取り出す
+
       xOpenIn(argv[num]);  // アーカイブファイルを開き
       xSeekArc(addr);    // ライブラリ関数の位置までSEEK
       printf("debug:アーカイブファイル名:%s\n",argv[num]); //デバッグ用
@@ -247,6 +263,8 @@ void importTextSegments(int argc, char **argv) {
 
       textBase = textBase + cTextSize;
       symBase  = symBase  + cSymSize;
+
+      symBase = symBase + 4;            // ARCVシンボルのぶん進める
   
       fcloseIn();
     }
@@ -262,8 +280,7 @@ void importDataSegments(int argc, char **argv) {
   dataBase = 0;
   for (int i=2; i<argc; i=i+1) {
     
-    int length = strlen(argv[i]);
-    if(argv[i][length-2]=='.' && argv[i][length-1]=='o') { // オブジェクトファイルに対して
+    if(endsWith(argv[i],".o")) { // オブジェクトファイルに対して
       
       xOpenIn(argv[i]);
       readHdr();
@@ -297,6 +314,8 @@ void importDataSegments(int argc, char **argv) {
 
       dataBase = dataBase + cDataSize;
       symBase  = symBase  + cSymSize;
+
+      symBase = symBase + 4;            // ARCVシンボルのぶん進める
 
       fcloseIn();
     
@@ -352,6 +371,9 @@ int main(int argc, char **argv) {
 
   xSeekOut(0);               // 先頭に戻る
   writeHdr();                // ヘッダを出力する
+
+  printHdr();                // デバッグ用
+
   fcloseOut();               // 出力ファイルクローズ
   exit(0);
 }

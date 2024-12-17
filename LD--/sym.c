@@ -109,7 +109,7 @@ int mergeSymTbl(int bssSize) {
   return bssSize;
 }
 
-//文字列表の統合に合わせて名前表のアドレスを調整する
+// 文字列表の統合に合わせて名前表のアドレスを調整する
 void updateSymStrx(int curIdx, int changeIdx, int len) {
   for(int i=0; i<symIdx; i=i+1) {
     int idxI = symTbl[i].strx;
@@ -177,42 +177,35 @@ void printSymName(int symx) {
 void packSymTbl() {
   int i = 0;
   while (i<symIdx) {                        // 全てのエントリーについて
-    if (symTbl[i].type==SYMARCV) {          // ARCVなら以下のように削除する
-      updateRelSymx(i);                     // 再配置表のインデクスを調整する
-      for (int j=i; j<symIdx-1; j=j+1) {    // 名前表を前につめる
-        symTbl[j] = symTbl[j+1];
-      }
-      symIdx = symIdx - 1;                  // 名前表を縮小する
-    }
-
-    else if (symTbl[i].type==SYMPTR) {      // PTRなら以下のように削除する
+     if (symTbl[i].type==SYMPTR             // シンボルの型がPTRかARCVなら
+      || symTbl[i].type==SYMARCV) {         // 以下のように削除する
       updateRelSymx(i);                     // 再配置表のインデクスを調整する
       for (int j=i; j<symIdx-1; j=j+1) {    // 名前表を前につめる
         symTbl[j] = symTbl[j+1];
       }
       symIdx = symIdx - 1;                  // 名前表を縮小する
     } else {
-      i = i + 1;                            // PTR以外なら進める
+      i = i + 1;                            // それ以外なら進める
     }
   }
 }
 
-//名前解決が可能か調べる
+// 名前解決が可能か調べる
 boolean checkSymMerge(int startIdx) {
-  for (int i=startIdx; i<preSymIdx; i=i+1) {// 調べる名前について
+  for (int i=startIdx; i<preSymIdx; i=i+1) { // 調べる名前について
     int typeI = symTbl[i].type;
-    if (isStrLocal(symTbl[i].strx)          // ローカルと
-        || typeI == SYMPTR                  // ポインタと
-        || typeI == SYMARCV) {              // ARCVは無視する    
+    if (isStrLocal(symTbl[i].strx)           // ローカルと
+        || typeI == SYMPTR                   // ポインタと
+        || typeI == SYMARCV) {               // ARCVは無視する    
       continue;
-    }                                       // ライブラリ関数から
-    for (int j=preSymIdx; j<symIdx; j=j+1) {// 読み込んだ名前表に対して
-      int typeJ = symTbl[j].type;           // 同じ綴りのものを探す
+    }                                        // ライブラリ関数から
+    for (int j=preSymIdx; j<symIdx; j=j+1) { // 読み込んだ名前表に対して
+      int typeJ = symTbl[j].type;            // 同じ綴りのものを探す
       if (cmpStr(symTbl[i].strx,symTbl[j].strx)) {
-                                            // 名前解決できるなら
+                                             // 名前解決できるなら
         if((symTbl[i].type == SYMUNDF && symTbl[j].type != SYMUNDF)
         || (symTbl[i].type == SYMBSS && symTbl[j].type == SYMDATA)) {
-          return true;                      // trueを返す
+          return true;                       // trueを返す
         }
       }
     }
@@ -229,14 +222,14 @@ void addSymArcv(int num, int addr) {
   symIdx = symIdx + 1;
 }
 
-//シンボルテーブルを保存
+// シンボルテーブルを保存
 void saveSymTbl() {
   preSymIdx = symIdx;
   preSymSize = symSize;
 }
 
-//保存したシンボルテーブルをロード
-void loadSymTbl() {
+// 保存したシンボルテーブルをロード
+void rollbackSymTbl() {
   symIdx = preSymIdx;
   symSize = preSymSize;
 }

@@ -58,11 +58,13 @@ void packStrTbl(int idxI,int len) {
 // 文字列表の読み込み
 void readStrTbl(int offs) {
   xSeekIn(offs);                     // 文字列表の位置に移動
+  printf("offs : %d\n",offs); //デバッグ用
   int c;
-  while ((c=getB())!=EOF) {          // EOFになるまで読み込む
+  while ((c=getB())!=EOF && isInLibRange(offs)) { // EOFになるまで読み込む
     if (strIdx>=STR_SIZ) tblError("文字列表がパンクした", strIdx, STR_SIZ);
     strTbl[strIdx] = c;
     strIdx = strIdx + 1;
+    offs = offs + 1;
   }
 }
 
@@ -73,6 +75,11 @@ void mergeStrTbl(int strIdxB) {
     // 以前からある全ての綴と比較
     for (int idxJ=0; idxJ<strIdxB; idxJ=idxJ+strLen(idxJ)) {
       if(cmpStr(idxI, idxJ)) {            // 同じ綴が見つかったら
+
+        printf("\nmergeStrTbl : ");
+        putStr(stdout,idxI);  //デバッグ用
+        printf("\n");
+
         int len = strLen(idxI);
         updateSymStrx(idxJ, idxI, len);   // 名前表のアドレスを調整して
         packStrTbl(idxI,len);             // 文字列表から統合した綴りを削除
@@ -91,10 +98,12 @@ void writeStrTbl() {
 
 // 文字列表をセーブ
 void saveStrTbl() {
+  printf("save...preStrIdx : %d\n", strIdx);
   preStrIdx = strIdx;
 }
 
 // セーブした文字列表をロード
-void loadStrTbl() {
+void rollbackStrTbl() {
+  printf("load...strIdx → preStrIdx : %d → %d\n", strIdx, preStrIdx);
   strIdx = preStrIdx;
 }

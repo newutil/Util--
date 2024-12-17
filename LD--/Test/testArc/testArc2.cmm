@@ -1,0 +1,11 @@
+//ライブラリ関数2。
+//testArcの関数を使用している。
+
+#include "testArc.hmm"
+#include "testArc2.hmm"
+
+public char arcz(char a){
+    int x = arcx(1);
+    char z = a;
+    return z;
+}

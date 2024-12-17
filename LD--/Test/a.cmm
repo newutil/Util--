@@ -1,9 +1,13 @@
+//ソースコード1。
+//testArcを使用している。
+//testarc2をincludeしているが、ライブラリ関数は使用していない。
+
 #include "testArc.hmm"
 #include "testArc2.hmm"
 
 public int a;
 public boolean b;
-
+public char tc;
 int c;
 
 struct s{
@@ -15,7 +19,8 @@ public s y;
 
 public char[] ar;
 public int main(){
-    char c = arcz('1');
-    int i = arcx(1);
+    int j = ta;
+    int i = 0;
+    i = arcx(1);
     return i;
 }

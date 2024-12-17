@@ -1,8 +1,9 @@
 #ifndef TESTARC_H
 #define TESTARC_H
+
+#define ta 10
 public int arcx(int a);
 public void arcy();
-
 
 
 #endif /* TESTARC_H */

@@ -1,0 +1,6 @@
+#ifndef TESTARC3_H
+#define TESTARC3_H
+
+public void arcn();
+
+#endif 
