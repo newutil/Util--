@@ -1,6 +1,5 @@
 #ifndef STR_H
 #define STR_H
-
 int getStrIdx();                            // strIdxの値を返す
 boolean isStrLocal(int i);                  // 文字列表からi番地の文字を読み込む
 int strLen(int n);                          // 文字列表中の文字列(n)の長さ

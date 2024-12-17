@@ -98,13 +98,11 @@ void readArchive() {
   cFileHead = ftell(in);            // 現在の.oファイル内容の先頭位置と
   cNextFile = cFileLen + cFileHead; // 次のライブラリ関数の先頭位置を保存
 
-  printf("cNextFile = %d\n",cNextFile); // デバッグ用
-  printf("cFileLen  = %d\n",cFileLen);  // デバッグ用
-  printf("cFileHead = %d\n",cFileHead); // デバッグ用
 }
 
-void xOpenIn(char *fname) {     // エラーチェック付きの fopen
-                                // アーカイブファイルに対応
+// エラーチェック付きの fopen
+// アーカイブファイルに対しては専用の処理を行う
+void xOpenIn(char *fname) {
   curFile = fname;
   if ((in = fopen(fname, "rb"))==NULL) {   // 入力ファイルオープン
     fError("can't open");
@@ -120,41 +118,46 @@ void xOpenIn(char *fname) {     // エラーチェック付きの fopen
   }
 }
 
-void xOpenOut(char *fname){                 // エラーチェック付きの fopen
+// エラーチェック付きの fopen
+void xOpenOut(char *fname){
   if ((out = fopen(fname,"wb"))==NULL) {    // 出力ファイルオープン
     perror(fname);
     error("can't open");
   }
 }
  
-void fcloseIn(){                            // 入力ファイルクローズ
+// 入力ファイルクローズ
+void fcloseIn(){
   fclose(in);
 }
 
-void fcloseOut(){                           // 入力ファイルクローズ
+// 出力ファイルクローズ
+void fcloseOut(){
   fclose(out);
 }
 
-void xSeekIn(int offset) {  // 入力ファイル用エラーチェック付きの SEEK ルーチン
+// 入力ファイル用エラーチェック付きの SEEK ルーチン
+void xSeekIn(int offset) {
   
   int realOffset = offset;
   if(isArchive)                           // アーカイブファイルの場合
     realOffset = realOffset + cFileHead;  // ファイルの内容の先頭からSEEKする
-  
   if ( (offset&1)!=0 || fseek(in, (long)realOffset, SEEK_SET)!=0){
     fError("file format");
   }
 }
 
-void xSeekOut(int offset) { // 出力ファイル用エラーチェック付きの SEEK ルーチン
+// 出力ファイル用エラーチェック付きの SEEK ルーチン
+void xSeekOut(int offset) {
   if ((offset&1)!=0 || fseek(out, (long)offset, SEEK_SET)!=0) {
     fError("file format");
   }
 }
 
-void xSeekArc(int addr) {   // ライブラリ関数の先頭へのSEEK専用ルーチン
+// ライブラリ関数の先頭へのSEEK専用ルーチン
+void xSeekArc(int addr) {
   if(!isArchive) {
-    error("アーカイブファイル以外でsSeekArcルーチンを使用");
+    error("アーカイブファイル以外でxSeekArcルーチンを使用");
   }
   if(fseek(in, (long)addr, SEEK_SET)!=0) {
     error("ARCVシンボルが不正");
@@ -162,20 +165,23 @@ void xSeekArc(int addr) {   // ライブラリ関数の先頭へのSEEK専用ル
   cFileHead = addr; // xSeekInのために先頭アドレスを調整
 }
 
-void putW(int x) {          // 1ワード出力ルーチン
+// 1ワード出力ルーチン
+void putW(int x) {
   putB(x>>8);
   putB(x);
 }
 
-int getW() {                // 1ワード入力ルーチン
+// 1ワード入力ルーチン
+int getW() {
   int x1 = getB();
   int x2 = getB();
   if (x1==EOF || x2==EOF) fError("undexpected EOF");
   return (x1 << 8) | x2;
 }
 
-boolean nextFile(){      // 現在読み込み中のアーカイブファイルの中で、
-                         // 次のファイルがあるかどうかを調べる
+// 現在読み込み中のアーカイブファイルの中に
+// 次のライブラリ関数が存在するか調べる
+boolean nextFile(){
   if(!isArchive) {       // アーカイブファイルではないときは
     return false;        // falseで終了
   }
@@ -195,7 +201,9 @@ boolean nextFile(){      // 現在読み込み中のアーカイブファイル�
   return true;            // trueを返す
 }
 
-// 読み込み中ライブラリ関数の範囲内にいるかチェック
+
+// 読み込み中ライブラリ関数の範囲内にいるか調べる
+// 文字列表の読み込みに使う
 boolean isInLibRange(int addr) {
   if(!isArchive) return true;  // アーカイブの時だけ考える
 

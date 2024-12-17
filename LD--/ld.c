@@ -94,18 +94,7 @@ void readHdr() {                           // ヘッダ読込みルーチン
   cTrSize=getW();                          //   Trサイズ
   cDrSize=getW();                          //   Drサイズ
 }
-void printHdr() {                          // デバッグ用に用意してるやつ
-  printf("* * *ヘッダ* * *\n");
-  printf("MAGIC   :0x%04x\n",MAGIC);
-  printf("TEXTSIZE:%d\n",textSize);
-  printf("DATASIZE:%d\n",dataSize);
-  printf("BSSSIZE :%d\n",bssSize);
-  printf("SYMSIZE :%d\n",getSymSize());
-  printf("ZERO    :%d\n",0);
-  printf("TRSIZE  :%d\n",getTrSize());
-  printf("DRSIZE  :%d\n\n",getDrSize());
 
-}
 /* プログラムやデータをリロケートしながらコピーする */
 void copyCode(int offs, int segSize, int segBase, int relBase) {
   xSeekIn(offs);
@@ -133,8 +122,6 @@ void importLibSymTbls(int argc, char **argv) {
   int nowSymIdx;          // 統合前のシンボルテーブルの位置を保存
 
   while(merged){          // 結合が行われなくなるまで繰り返す
-    printSymTbl();   // デバッグ用
-    printf("\nimportLibSymTbls\nstartIdx = %d\n",startIdx); //デバッグ用
     merged = false;
     nowSymIdx = getSymIdx(); // 今のsymIdxを保存
     for(int i=2;i<argc; i=i+1) {
@@ -180,7 +167,6 @@ void importLibSymTbls(int argc, char **argv) {
       bssSize = mergeSymTbl(bssSize); // bssSizeの値を再計算させる
 
       bssBase  = bssSize;
-       printf("bssSize : %d",bssSize);
     
                              // 名前解決が発生する場合、
     startIdx = nowSymIdx;    // 次は読み込んだライブラリ関数について名前解決を試みる
@@ -189,7 +175,6 @@ void importLibSymTbls(int argc, char **argv) {
 
  /* 入力ファイルのシンボルテーブルを読み込んで統合する */
 void importSymTbls(int argc, char **argv) {
-  printf("\nimportSymTbls\n"); //デバッグ用
   textBase = dataBase = bssBase = 0;
   //trSize = drSize  = 0;
   for (int i=2; i<argc; i=i+1) {
@@ -228,7 +213,6 @@ void importSymTbls(int argc, char **argv) {
 
 /* テキストセグメントを入力して結合後出力する */
 void importTextSegments(int argc, char **argv) {
-  printf("\nimportTextSegments\n"); // デバッグ用
   int symBase = 0;
   textBase = 0;
   for (int i=2; i<argc; i=i+1) {
@@ -253,8 +237,6 @@ void importTextSegments(int argc, char **argv) {
 
       xOpenIn(argv[num]);  // アーカイブファイルを開き
       xSeekArc(addr);    // ライブラリ関数の位置までSEEK
-      printf("debug:アーカイブファイル名:%s\n",argv[num]); //デバッグ用
-      printf("debug:ファイルの先頭アドレス:%d\n",addr); //デバッグ用
 
       readHdr();
       int relBase = getRelIdx();  // relIdx
@@ -275,7 +257,6 @@ void importTextSegments(int argc, char **argv) {
 
 /* データセグメントを入力して結合後出力する */
 void importDataSegments(int argc, char **argv) {
-  printf("\nimportDataSegments\n");//デバッグ用
   int symBase = 0;
   dataBase = 0;
   for (int i=2; i<argc; i=i+1) {
@@ -304,8 +285,6 @@ void importDataSegments(int argc, char **argv) {
       xOpenIn(argv[num]);  // アーカイブファイルを開き
       xSeekArc(addr);    // ライブラリ関数の位置までSEEK
 
-      printf("debug:アーカイブファイル名:%s\n",argv[num]); // デバッグ用
-      printf("debug:ファイルの先頭アドレス:%d\n",addr);    // デバッグ用
 
       readHdr();
       int relBase = getRelIdx();
@@ -372,7 +351,6 @@ int main(int argc, char **argv) {
   xSeekOut(0);               // 先頭に戻る
   writeHdr();                // ヘッダを出力する
 
-  printHdr();                // デバッグ用
 
   fcloseOut();               // 出力ファイルクローズ
   exit(0);

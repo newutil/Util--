@@ -8,8 +8,6 @@ struct SymTbl {                             // 名前表の型定義
   int type;                                 // type の意味は下に #define
   int val;                                  // 名前の値
 };
-
-
 struct SymTbl getSymTbl(int index);         // 名前表のゲッター
 int getSymIdx();
 int getSymSize();

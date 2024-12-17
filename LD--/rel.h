@@ -6,7 +6,6 @@ struct Reloc {                              // 再配置表
   int addr;                                 // ポインタのセグメント内 Offs
   int symx;                                 // シンボルテーブル上の番号
 };
-
 int getRelIdx();    //使用した表の領域のゲッター
 struct Reloc getRelTbl(int index); //再配置表のゲッター
 int getTrSize();

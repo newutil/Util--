@@ -139,22 +139,9 @@ void printSymTbl() {
   for (int i=0; i<symIdx; i=i+1) {
     int strx = symTbl[i].strx;
     int type = symTbl[i].type;
-    int val  = symTbl[i].val;  //デバッグのためptrとARCVも表示するようにしている
-    if(type==SYMARCV){
-      printf("%d\t",i);
-      printf("%d",strx);
-      printf("\tARCV");
-      printf("\t%04x\n", val&0xffff);
-    }
-    else {
-    printf("%d\t",i);
-    putStr(stdout,strx);
-    printf("\t");
-    if(type==SYMPTR){
-      printf("PTR");
-    } else printSymType(type);
+    int val  = symTbl[i].val; 
+    printSymType(type);
     printf("\t%04x\n", val&0xffff);
-    }
   }
 }
 
@@ -164,7 +151,6 @@ void printSymType(int type) {
   else if (type==SYMDATA) printf("DATA");   //   = 2
   else if (type==SYMBSS)  printf("BSS");    //   = 3
   else if (type==SYMUNDF) printf("UNDF");   //   = 0
-
   else error("printSymType:バグ");
 }
 
@@ -189,7 +175,6 @@ void packSymTbl() {
     }
   }
 }
-
 // 名前解決が可能か調べる
 boolean checkSymMerge(int startIdx) {
   for (int i=startIdx; i<preSymIdx; i=i+1) { // 調べる名前について
@@ -212,22 +197,18 @@ boolean checkSymMerge(int startIdx) {
   }
   return false;
 }
-
 // ライブラリ関数の位置を記録した特別なシンボルを末尾に追加する
-// strxにargvの番号、valに内容の開始アドレスを記入
 void addSymArcv(int num, int addr) {
-  symTbl[symIdx].strx = num;
+  symTbl[symIdx].strx = num;      // strxにargvのインデクスを記入
   symTbl[symIdx].type = SYMARCV;
-  symTbl[symIdx].val = addr;
+  symTbl[symIdx].val = addr;      // valに内容の開始アドレスを記入
   symIdx = symIdx + 1;
 }
-
 // シンボルテーブルを保存
 void saveSymTbl() {
   preSymIdx = symIdx;
   preSymSize = symSize;
 }
-
 // 保存したシンボルテーブルをロード
 void rollbackSymTbl() {
   symIdx = preSymIdx;

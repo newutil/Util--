@@ -14,12 +14,12 @@ static int relIdx;                  // 表のどこまで使用したか
 static int trSize = 0;  //テキストリロケーションテーブルの大きさ
 static int drSize = 0;  //データリロケーションテーブルの大きさ
 
-//使用した表の領域のゲッター
+// 使用した表の領域のゲッター
 int getRelIdx() {
   return relIdx;
 }
 
-//再配置表のゲッター
+// 再配置表のゲッター
 struct Reloc getRelTbl(int index) {
   if(index >= relIdx || index < 0) {
     error("再配置表の参照先がおかしい");    //存在しない番地
@@ -27,11 +27,12 @@ struct Reloc getRelTbl(int index) {
   return relTbl[index];
 }
 
-
+// trSizeのゲッター
 int getTrSize() {
   return trSize;
 }
 
+// drSizeのゲッター
 int getDrSize() {
   return drSize;
 }
