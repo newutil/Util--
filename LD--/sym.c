@@ -137,9 +137,12 @@ void printSymTbl() {
   printf("*** 名前表 ***\n");
   printf("No.\tName\tType\tValue\n");
   for (int i=0; i<symIdx; i=i+1) {
+    printf("%d\t",i);
     int strx = symTbl[i].strx;
     int type = symTbl[i].type;
     int val  = symTbl[i].val; 
+    putStr(stdout,strx);
+    printf("\t");
     printSymType(type);
     printf("\t%04x\n", val&0xffff);
   }
