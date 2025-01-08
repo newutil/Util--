@@ -154,6 +154,8 @@ void printSymType(int type) {
   else if (type==SYMDATA) printf("DATA");   //   = 2
   else if (type==SYMBSS)  printf("BSS");    //   = 3
   else if (type==SYMUNDF) printf("UNDF");   //   = 0
+  else if (type==SYMPTR)  printf("PTR");
+  else if (type==SYMARCV) printf("ARCV");
   else error("printSymType:バグ");
 }
 
@@ -179,8 +181,8 @@ void packSymTbl() {
   }
 }
 // 名前解決が可能か調べる
-boolean checkSymMerge(int startIdx) {
-  for (int i=startIdx; i<preSymIdx; i=i+1) { // 調べる名前について
+boolean checkSymMerge(int startIdx,int endIdx) {
+  for (int i=startIdx; i<endIdx; i=i+1) {    // 調べる名前について
     int typeI = symTbl[i].type;
     if (isStrLocal(symTbl[i].strx)           // ローカルと
         || typeI == SYMPTR                   // ポインタと

@@ -117,11 +117,12 @@ void copyCode(int offs, int segSize, int segBase, int relBase) {
 /*必要なライブラリ関数を調べ、名前表に追加する*/
 void importLibSymTbls(int argc, char **argv) {
 
-  boolean merged = true;  // 統合が行われたかどうかを判定 
-  int startIdx = 0;       // 統合チェックの開始位置
-  int nowSymIdx;          // 統合前のシンボルテーブルの位置を保存
+  boolean merged = true;     // 統合が行われたかどうかを判定 
+  int startIdx = 0;          // 統合チェックの開始位置
+  int endIdx = getSymIdx();  // 統合チェックの終了位置 
+  int nowSymIdx;             // 統合前のシンボルテーブルの位置を保存
 
-  while(merged){          // 結合が行われなくなるまで繰り返す
+  while(merged){             // 結合が行われなくなるまで繰り返す
     merged = false;
     nowSymIdx = getSymIdx(); // 今のsymIdxを保存
     for(int i=2;i<argc; i=i+1) {
@@ -140,8 +141,8 @@ void importLibSymTbls(int argc, char **argv) {
           readStrTbl(HDRSIZ+cTextSize+cDataSize+cTrSize+cDrSize+cSymSize);
 
 
-          if(checkSymMerge(startIdx)) {  // チェックの開始地点を指定して判定を行う
-            merged = true;                    // 名前解決が可能ならばフラグを立て
+          if(checkSymMerge(startIdx,endIdx)) {  // チェックの範囲を指定して判定を行う
+            merged = true;                      // 名前解決が可能ならばフラグを立て
 
             mergeStrTbl(newStrBase);                       // 文字列表を統合し
 
@@ -155,10 +156,13 @@ void importLibSymTbls(int argc, char **argv) {
             rollbackStrTbl();    // 文字列表をロールバックして
           }                      // 読み込んだライブラリ関数を捨てる
 
+
         } while(nextFile()); // アーカイブ内全てのライブラリ関数について同様の処理を行う
         fcloseIn();
       }
     }
+
+      
     
       textSize = textBase;
       dataSize = dataBase;
@@ -169,7 +173,8 @@ void importLibSymTbls(int argc, char **argv) {
       bssBase  = bssSize;
     
                              // 名前解決が発生する場合、
-    startIdx = nowSymIdx;    // 次は読み込んだライブラリ関数について名前解決を試みる
+    startIdx = nowSymIdx;    // 次は読み込んだライブラリ関数について
+    endIdx = getSymIdx();    // 名前解決を試みる
   }
 }
 
@@ -205,6 +210,7 @@ void importSymTbls(int argc, char **argv) {
                                    // bssSizeの値を再計算させる
 
   bssBase = bssSize;
+
 
   importLibSymTbls(argc, argv);  // ライブラリ関数から必要なものを入力する
 

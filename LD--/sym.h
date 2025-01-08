@@ -22,5 +22,5 @@ void packSymTbl();
 void addSymArcv(int num, int addr);
 void saveSymTbl();
 void rollbackSymTbl();
-boolean checkSymMerge(int startIdx);
+boolean checkSymMerge(int startIdx,int endIdx);
 #endif
