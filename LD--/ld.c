@@ -167,10 +167,13 @@ void importLibSymTbls(int argc, char **argv) {
       textSize = textBase;
       dataSize = dataBase;
       bssSize  = bssBase;
+
                                       // シンボルテーブルの統合
       bssSize = mergeSymTbl(bssSize); // bssSizeの値を再計算させる
 
       bssBase  = bssSize;
+
+       printSymTbl(); //デバッグ用
     
                              // 名前解決が発生する場合、
     startIdx = nowSymIdx;    // 次は読み込んだライブラリ関数について

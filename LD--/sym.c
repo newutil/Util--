@@ -6,7 +6,8 @@
 #include "sym.h"
 #include "rel.h"
 
-#define SYM_SIZ  3000              // 名前表の大きさ (<=16kエントリ)
+// 3000
+#define SYM_SIZ  4000              // 名前表の大きさ (<=16kエントリ)
 
 struct SymTbl symTbl[SYM_SIZ];     // 名前表本体の定義
 int symIdx = 0;                    // 表のどこまで使用したか
@@ -193,7 +194,8 @@ boolean checkSymMerge(int startIdx,int endIdx) {
       int typeJ = symTbl[j].type;            // 同じ綴りのものを探す
       if (cmpStr(symTbl[i].strx,symTbl[j].strx)) {
                                              // 名前解決できるなら
-        if((symTbl[i].type == SYMUNDF && symTbl[j].type != SYMUNDF)
+        if((symTbl[i].type == SYMUNDF && symTbl[j].type != SYMUNDF 
+                                      && symTbl[j].type != SYMBSS)
         || (symTbl[i].type == SYMBSS && symTbl[j].type == SYMDATA)) {
           return true;                       // trueを返す
         }
