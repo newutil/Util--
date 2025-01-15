@@ -19,11 +19,11 @@ void fError(char *str);                         // ファイル名付きでエ�
 void tblError(char *str,int index, int size);   // 表がパンクした時のエラー表示
 void xOpenIn(char *fname);                      // エラーチェック付きの fopen:入力ファイル用
 void xOpenOut(char *fname);                     // エラーチェック付きの fopen:出力ファイル用
-void xSeekArc(int offset);                      // アーカイブファイル用のSEEKルーチン
 void fcloseIn();    
 void fcloseOut();
 void xSeekIn(int offset);                       // エラーチェック付きの SEEK ルーチン
 void xSeekOut(int offset);
+void xSeekArc(int offset);                      // アーカイブファイル用のSEEKルーチン
 void putW(int x);                               // 1ワード出力ルーチン
 int getW();                                     // 1ワード入力ルーチン
 boolean nextFile();                             // 

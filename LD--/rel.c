@@ -7,6 +7,7 @@
 #include "str.h"
 #include "rel.h"
 
+#define REL_SIZ  6000                       // 再配置表の大きさ
 
 static struct Reloc relTbl[REL_SIZ];      //　再配置表の定義
 static int relIdx;                  // 表のどこまで使用したか

@@ -360,7 +360,6 @@ int main(int argc, char **argv) {
   xSeekOut(0);               // 先頭に戻る
   writeHdr();                // ヘッダを出力する
 
-
   fcloseOut();               // 出力ファイルクローズ
   exit(0);
 }

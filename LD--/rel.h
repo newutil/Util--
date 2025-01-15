@@ -1,7 +1,6 @@
 #ifndef REL_H
 #define REL_H
 
-#define REL_SIZ  6000                       // 再配置表の大きさ
 struct Reloc {                              // 再配置表
   int addr;                                 // ポインタのセグメント内 Offs
   int symx;                                 // シンボルテーブル上の番号
